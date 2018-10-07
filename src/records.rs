@@ -18,33 +18,30 @@ impl CustomUnitRecord {
 }
 
 #[derive(Debug, Eq, PartialEq)]
-pub struct StockUnitRecord {}
+pub struct StockUnitRecord {
+    pub id: String,
+    pub model: String
+}
 
 impl StockUnitRecord {
     fn from_record(string_record: &StringRecord) -> Option<StockUnitRecord> {
-        Some(StockUnitRecord {})
+        Some(StockUnitRecord {
+            id: string_record.get(1).unwrap().to_string(),
+            model: string_record.get(2).unwrap().to_string()
+        })
     }
 }
 
 #[derive(Debug, Eq, PartialEq)]
-pub struct CustomStructureRecord {}
-
-impl CustomStructureRecord {
-    fn from_record(string_record: &StringRecord) -> Option<CustomStructureRecord> {
-        Some(CustomStructureRecord {})
-    }
-}
-
-#[derive(Debug, Eq, PartialEq)]
-pub struct UnitShopRecord {
+pub struct CustomBuildingRecord {
     pub uid: String,
     pub name: String,
     pub model: String,
 }
 
-impl UnitShopRecord {
-    fn from_record(string_record: &StringRecord) -> Option<UnitShopRecord> {
-        Some(UnitShopRecord {
+impl CustomBuildingRecord {
+    fn from_record(string_record: &StringRecord) -> Option<CustomBuildingRecord> {
+        Some(CustomBuildingRecord {
             uid: string_record.get(1).unwrap().to_string(),
             name: string_record.get(2).unwrap().to_string(),
             model: string_record.get(3).unwrap().to_string(),
@@ -53,20 +50,77 @@ impl UnitShopRecord {
 }
 
 #[derive(Debug, Eq, PartialEq)]
-pub struct StructureBuilderRecord {}
+pub struct UnitShopRecord {
+    pub uid: String,
+    pub name: String,
+    pub model: Option<String>,
+}
 
-impl StructureBuilderRecord {
-    fn from_record(string_record: &StringRecord) -> Option<StructureBuilderRecord> {
-        Some(StructureBuilderRecord {})
+impl UnitShopRecord {
+    fn from_record(string_record: &StringRecord) -> Option<UnitShopRecord> {
+        Some(UnitShopRecord {
+            uid: string_record.get(1).unwrap().to_string(),
+            name: string_record.get(2).unwrap().to_string(),
+            model: string_record.get(3).map(|f| f.to_string()),
+        })
     }
 }
 
 #[derive(Debug, Eq, PartialEq)]
-pub struct StructureShopRecord {}
+pub struct CustomBuilderRecord {
+    pub uid: String,
+    pub name: String,
+}
 
-impl StructureShopRecord {
-    fn from_record(string_record: &StringRecord) -> Option<StructureShopRecord> {
-        Some(StructureShopRecord {})
+impl CustomBuilderRecord {
+    fn from_record(string_record: &StringRecord) -> Option<CustomBuilderRecord> {
+        Some(CustomBuilderRecord {
+            uid: string_record.get(1).unwrap().to_string(),
+            name: string_record.get(2).unwrap().to_string(),
+        })
+    }
+}
+
+#[derive(Debug, Eq, PartialEq)]
+pub struct BuilderShopRecord {
+    pub uid: String,
+    pub name: String,
+}
+
+impl BuilderShopRecord {
+    fn from_record(string_record: &StringRecord) -> Option<BuilderShopRecord> {
+        Some(BuilderShopRecord {
+            uid: string_record.get(1).unwrap().to_string(),
+            name: string_record.get(2).unwrap().to_string(),
+        })
+    }
+}
+
+#[derive(Debug, Eq, PartialEq)]
+pub struct SetShopModelRecord {
+    pub model: String,
+}
+
+impl SetShopModelRecord {
+    fn from_record(string_record: &StringRecord) -> Option<SetShopModelRecord> {
+        Some(SetShopModelRecord {
+            model: string_record.get(1).unwrap().to_string()
+        })
+    }
+}
+
+#[derive(Debug, Eq, PartialEq)]
+pub struct StockUnitModelRecord {
+    pub id: String,
+    pub model: String,
+}
+
+impl StockUnitModelRecord {
+    fn from_record(string_record: &StringRecord) -> Option<StockUnitModelRecord> {
+        Some(StockUnitModelRecord {
+            id: string_record.get(1).unwrap().to_string(),
+            model: string_record.get(2).unwrap().to_string()
+        })
     }
 }
 
@@ -92,12 +146,14 @@ impl AttachmentShopRecord {
 pub enum Record {
     CustomUnit(CustomUnitRecord),
     StockUnit(StockUnitRecord),
-    CustomStructure(CustomStructureRecord),
+    CustomBuilding(CustomBuildingRecord),
     UnitShop(UnitShopRecord),
-    StructureBuilder(StructureBuilderRecord),
-    StructureShop(StructureShopRecord),
+    CustomBuilder(CustomBuilderRecord),
+    BuilderShop(BuilderShopRecord),
+    SetShopModel(SetShopModelRecord),
     Attachment(AttachmentRecord),
     AttachmentShop(AttachmentShopRecord),
+    StockUnitModel(StockUnitModelRecord)
 }
 
 impl Record {
@@ -106,26 +162,16 @@ impl Record {
 
         if let Some(record_type) = record_type {
             return match record_type {
-                "CustomUnit" => {
-                    CustomUnitRecord::from_record(string_record).map(Record::CustomUnit)
-                }
+                "CustomUnit" => CustomUnitRecord::from_record(string_record).map(Record::CustomUnit),
                 "StockUnit" => StockUnitRecord::from_record(string_record).map(Record::StockUnit),
-                "CustomStructure" => {
-                    CustomStructureRecord::from_record(string_record).map(Record::CustomStructure)
-                }
+                "CustomBuilding" => CustomBuildingRecord::from_record(string_record).map(Record::CustomBuilding),
                 "UnitShop" => UnitShopRecord::from_record(string_record).map(Record::UnitShop),
-                "StructureBuilder" => {
-                    StructureBuilderRecord::from_record(string_record).map(Record::StructureBuilder)
-                }
-                "StructureShop" => {
-                    StructureShopRecord::from_record(string_record).map(Record::StructureShop)
-                }
-                "Attachment" => {
-                    AttachmentRecord::from_record(string_record).map(Record::Attachment)
-                }
-                "AttachmentShop" => {
-                    AttachmentShopRecord::from_record(string_record).map(Record::AttachmentShop)
-                }
+                "CustomBuilder" => CustomBuilderRecord::from_record(string_record).map(Record::CustomBuilder),
+                "BuilderShop" => BuilderShopRecord::from_record(string_record).map(Record::BuilderShop),
+                "Attachment" => AttachmentRecord::from_record(string_record).map(Record::Attachment),
+                "AttachmentShop" => AttachmentShopRecord::from_record(string_record).map(Record::AttachmentShop),
+                "SetShopModel" => SetShopModelRecord::from_record(string_record).map(Record::SetShopModel),
+                "StockUnitModel" => StockUnitModelRecord::from_record(string_record).map(Record::StockUnitModel),
                 _ => None,
             };
         }

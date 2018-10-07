@@ -6,7 +6,25 @@ use heck::*;
 use records::*;
 use std::mem::replace;
 
+use std::iter::*;
 use itertools::Itertools;
+use codegen::IdReference::Constant;
+use codegen::IdReference::Literal;
+
+#[derive(PartialEq, PartialOrd, Eq, Ord, Clone)]
+enum IdReference {
+    Constant(String),
+    Literal(String)
+}
+
+impl IdReference {
+    fn to_string(&self) -> String {
+        match self {
+            Constant(s) => s.to_string(),
+            Literal(s) => s.to_string()
+        }
+    }
+}
 
 #[derive(Debug)]
 struct YarpUnit {
@@ -27,12 +45,30 @@ impl YarpUnit {
     }
 }
 
+struct YarpBuilding {
+    uid: String,
+    id_constant: String,
+    name: String,
+    model: String
+}
+
+impl YarpBuilding {
+    fn new(uid: String, name: String, model: String) -> YarpBuilding {
+        YarpBuilding {
+            id_constant: uid.to_shouty_snake_case(),
+            uid,
+            name,
+            model,
+        }
+    }
+}
+
 struct YarpUnitShop {
     uid: String,
     id_constant: String,
     name: String,
     model: String,
-    unit_ids: Vec<String>,
+    unit_ids: Vec<IdReference>,
     x: i32,
     y: i32,
 }
@@ -42,7 +78,7 @@ impl YarpUnitShop {
         uid: String,
         name: String,
         model: String,
-        unit_ids: Vec<String>,
+        unit_ids: Vec<IdReference>,
         x: i32,
         y: i32,
     ) -> YarpUnitShop {
@@ -61,11 +97,15 @@ impl YarpUnitShop {
 pub struct CodeGenerator<W: Write> {
     writer: W,
     units: Vec<YarpUnit>,
+    buildings: Vec<YarpBuilding>,
     uid_registry: BTreeMap<String, String>,
-    current_unit_list: Vec<String>,
+    model_registry: BTreeMap<IdReference, String>,
+    current_unit_list: Vec<IdReference>,
+    current_building_list: Vec<String>,
     unit_shops: Vec<YarpUnitShop>,
     current_shop_x: i32,
     current_shop_y: i32,
+    current_shop_model: String,
 }
 
 impl<W: Write> CodeGenerator<W> {
@@ -73,26 +113,32 @@ impl<W: Write> CodeGenerator<W> {
         CodeGenerator {
             writer,
             units: Vec::new(),
+            buildings: Vec::new(),
             current_unit_list: Vec::new(),
+            current_building_list: Vec::new(),
             uid_registry: BTreeMap::new(),
+            model_registry: BTreeMap::new(),
             unit_shops: Vec::new(),
             current_shop_x: 0,
             current_shop_y: 0,
+            current_shop_model: "".to_string()
         }
     }
 
     pub fn process_record(&mut self, record: Record) {
         match record {
             Record::CustomUnit(unit) => {
-                if self.current_unit_list.len() > 10 {
-                    panic!("Trying to add more than 11 units to a shop.");
+                if self.current_unit_list.len() > 11 {
+                    panic!("Trying to add more than 12 units to a shop.");
                 }
 
                 let yunit = YarpUnit::new(unit.uid, unit.name, unit.model);
 
                 self.register_uid(&yunit.uid, &yunit.id_constant);
+                self.current_shop_model = yunit.model.to_string();
 
-                self.current_unit_list.push(yunit.uid.clone());
+                self.register_model(Constant(yunit.id_constant.to_string()), &yunit.model);
+                self.current_unit_list.push(Constant(yunit.uid.clone()));
                 self.units.push(yunit);
             }
 
@@ -101,7 +147,7 @@ impl<W: Write> CodeGenerator<W> {
                 let unit_shop = YarpUnitShop::new(
                     shop.uid,
                     shop.name,
-                    shop.model,
+                    shop.model.unwrap_or_else(|| self.current_shop_model.clone()),
                     old_shop,
                     self.current_shop_x,
                     self.current_shop_y,
@@ -116,6 +162,43 @@ impl<W: Write> CodeGenerator<W> {
                     self.current_shop_y -= 128;
                 }
             }
+
+            Record::CustomBuilding(building) => {
+                if self.current_building_list.len() > 10 {
+                    panic!("Trying to add more than 11 buildings to a builder.");
+                }
+
+                let ybuilding = YarpBuilding::new(building.uid, building.name, building.model);
+
+                self.register_uid(&ybuilding.uid, &ybuilding.id_constant);
+
+                self.current_building_list.push(ybuilding.uid.clone());
+                self.buildings.push(ybuilding);
+            },
+
+            Record::StockUnit(unit) => {
+                if self.current_unit_list.len() > 11 {
+                    panic!("Trying to add more than 12 units to a shop.");
+                }
+
+                let id_reference = Literal(format!("'{}'", unit.id));
+                self.current_unit_list.push(id_reference.clone());
+                // self.register_model(id_reference, &unit.model);
+                self.current_shop_model = unit.model;
+            },
+
+            Record::CustomBuilder(builder) => {
+                replace(&mut self.current_building_list, Vec::new());
+            },
+
+            Record::SetShopModel(record) => {
+                self.current_shop_model = record.model;
+            }
+
+            Record::StockUnitModel(record) => {
+                let id_reference = Literal(format!("'{}'", record.id));
+                self.register_model(id_reference, &record.model);
+            }
             _ => (),
         }
     }
@@ -127,11 +210,15 @@ impl<W: Write> CodeGenerator<W> {
 
         self.units
             .iter()
-            .for_each(|unit| Self::emit_unit_id(writer, &unit.id_constant));
+            .for_each(|unit| Self::emit_constant_id(writer, &unit.id_constant));
 
         self.unit_shops
             .iter()
-            .for_each(|shop| Self::emit_unit_id(writer, &shop.id_constant));
+            .for_each(|shop| Self::emit_constant_id(writer, &shop.id_constant));
+
+        self.buildings
+            .iter()
+            .for_each(|building| Self::emit_constant_id(writer, &building.id_constant));
 
         Self::emit_newline(writer);
         Self::emit_definitions_start(writer);
@@ -147,6 +234,12 @@ impl<W: Write> CodeGenerator<W> {
             .for_each(|shop| Self::emit_shop_definition(writer, registry, shop));
 
         Self::emit_newline(writer);
+
+        self.buildings
+            .iter()
+            .for_each(|building| Self::emit_building_definition(writer, building));
+
+        Self::emit_newline(writer);
         Self::emit_shop_placement_start(writer);
 
         self.unit_shops
@@ -159,6 +252,8 @@ impl<W: Write> CodeGenerator<W> {
         Self::emit_reverse_registry(writer, registry);
         Self::emit_newline(writer);
         Self::emit_shop_registry(writer, &self.unit_shops);
+        Self::emit_newline(writer);
+        Self::emit_model_registry(writer, &self.model_registry);
     }
 
     fn register_uid(&mut self, uid: &str, id_constant: &str) {
@@ -171,18 +266,22 @@ impl<W: Write> CodeGenerator<W> {
         }
     }
 
+    fn register_model(&mut self, id: IdReference, model: &str) {
+        self.model_registry.insert(id, model.to_string());
+    }
+
     fn emit_header(writer: &mut W) {
-        writeln!(writer, "package AutoGenerated\nimport CodegenUtils\n").unwrap();
+        writeln!(writer, "package AutoGenerated\nimport public CodegenUtils\n").unwrap();
     }
 
     fn emit_newline(writer: &mut W) {
         writeln!(writer).unwrap();
     }
 
-    fn emit_unit_id(writer: &mut W, id: &str) {
+    fn emit_constant_id(writer: &mut W, id: &str) {
         writeln!(
             writer,
-            "public constant {} = compiletime(UNIT_ID_GEN.next())",
+            "constant {} = compiletime(UNIT_ID_GEN.next())",
             id
         ).unwrap();
     }
@@ -199,6 +298,14 @@ impl<W: Write> CodeGenerator<W> {
         ).unwrap();
     }
 
+    fn emit_building_definition(writer: &mut W, building: &YarpBuilding) {
+        writeln!(
+            writer,
+            "\tCodegenUtils.customBuilding({}, \"{}\", \"{}\")",
+            building.id_constant, building.model, building.name
+        ).unwrap();
+    }
+
     fn emit_shop_definition(
         writer: &mut W,
         registry: &BTreeMap<String, String>,
@@ -212,7 +319,12 @@ impl<W: Write> CodeGenerator<W> {
             shop.name,
             shop.unit_ids
                 .iter()
-                .map(|s| registry.get(s))
+                .map(|s| {
+                    match s {
+                        IdReference::Constant(s) => registry.get(s),
+                        IdReference::Literal(s) => Some(s)
+                    }
+                })
                 .filter_map(|s| s)
                 .map(|s| s.to_string() + ".toRawCode()")
                 .join(" + \",\" + ")
@@ -234,42 +346,68 @@ impl<W: Write> CodeGenerator<W> {
     }
 
     fn emit_registry(writer: &mut W, registry: &BTreeMap<String, String>) {
-        writeln!(
-            writer,
-            "public function makeUidRegistry() returns HashMap<int, int>"
-        ).unwrap();
-        writeln!(writer, "\tlet registry = new HashMap<int, int>").unwrap();
-
-        for (uid, id_constant) in registry {
+        let mut counter = 0;
+        registry.iter().chunks(40).into_iter().enumerate().for_each(|(index, chunk)| {
+            counter += 1;
             writeln!(
                 writer,
-                "\tregistry.put(compiletime(\"{}\".getHash()), {})",
-                uid, id_constant
+                "@noinline\nfunction populateUidRegistry{}()",
+                index
             ).unwrap();
-        }
 
-        writeln!(writer, "\treturn registry").unwrap();
+            chunk.for_each(|(uid, id_constant)| {
+                writeln!(
+                    writer,
+                    "\tregisterUid(compiletime(\"{}\".getHash()), {})",
+                    uid, id_constant
+                ).unwrap();
+            });
+
+            Self::emit_newline(writer);
+        });
+
+        writeln!(
+            writer,
+            "public function makeUidRegistry()"
+        ).unwrap();
+
+        for i in 0..counter {
+            writeln!(writer, "\tpopulateUidRegistry{}()", i);
+        }
     }
 
     fn emit_reverse_registry(writer: &mut W, registry: &BTreeMap<String, String>) {
-        writeln!(
-            writer,
-            "public function makeUidReverseRegistry() returns HashMap<int, int>"
-        ).unwrap();
-        writeln!(writer, "\tlet registry = new HashMap<int, int>").unwrap();
-
-        for (uid, id_constant) in registry {
+        let mut counter = 0;
+        registry.iter().chunks(40).into_iter().enumerate().for_each(|(index, chunk)| {
+            counter += 1;
             writeln!(
                 writer,
-                "\tregistry.put({}, compiletime(\"{}\".getHash()))",
-                id_constant, uid
+                "@noinline\nfunction populateUidReverseRegistry{}()",
+                index
             ).unwrap();
-        }
 
-        writeln!(writer, "\treturn registry").unwrap();
+            chunk.for_each(|(uid, id_constant)| {
+                writeln!(
+                    writer,
+                    "\tregisterReverseUid({}, \"{}\")",
+                    id_constant, uid
+                ).unwrap();
+            });
+
+            Self::emit_newline(writer);
+        });
+
+        writeln!(
+            writer,
+            "public function makeUidReverseRegistry()"
+        ).unwrap();
+
+        for i in 0..counter {
+            writeln!(writer, "\tpopulateUidReverseRegistry{}()", i);
+        }
     }
 
-    fn emit_shop_registry(writer: &mut W, unit_shops: &Vec<YarpUnitShop>) {
+    fn emit_shop_registry(writer: &mut W, unit_shops: &[YarpUnitShop]) {
         writeln!(
             writer,
             "public function makeShopRegistry() returns HashSet<int>"
@@ -281,5 +419,37 @@ impl<W: Write> CodeGenerator<W> {
         }
 
         writeln!(writer, "\treturn registry").unwrap();
+    }
+
+    fn emit_model_registry(writer: &mut W, registry: &BTreeMap<IdReference, String>) {
+        let mut counter = 0;
+        registry.iter().chunks(40).into_iter().enumerate().for_each(|(index, chunk)| {
+            counter += 1;
+
+            writeln!(
+                writer,
+                "@noinline\nfunction populateModelRegistry{}()",
+                index
+            ).unwrap();
+
+            chunk.for_each(|(id_reference, model)| {
+                writeln!(
+                    writer,
+                    "\tregisterModel({}, \"{}\")",
+                    id_reference.to_string(), model
+                ).unwrap();
+            });
+
+            Self::emit_newline(writer);
+        });
+
+        writeln!(
+            writer,
+            "public function makeModelRegistry()"
+        ).unwrap();
+
+        for i in 0..counter {
+            writeln!(writer, "\tpopulateModelRegistry{}()", i);
+        }
     }
 }
