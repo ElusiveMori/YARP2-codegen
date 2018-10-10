@@ -11,7 +11,7 @@ use itertools::Itertools;
 use codegen::IdReference::Constant;
 use codegen::IdReference::Literal;
 
-#[derive(PartialEq, PartialOrd, Eq, Ord, Clone)]
+#[derive(Debug, PartialEq, PartialOrd, Eq, Ord, Clone)]
 enum IdReference {
     Constant(String),
     Literal(String)
@@ -45,11 +45,32 @@ impl YarpUnit {
     }
 }
 
+#[derive(Debug)]
+struct YarpBuilder {
+    uid: String,
+    id_constant: String,
+    name: String,
+    model: String,
+    built_ids: Vec<IdReference>
+}
+
+impl YarpBuilder {
+    fn new(uid: String, name: String, model: String, built_ids: Vec<IdReference>) -> YarpBuilder {
+        YarpBuilder {
+            id_constant: uid.to_shouty_snake_case(),
+            uid,
+            name,
+            model,
+            built_ids
+        }
+    }
+}
+
 struct YarpBuilding {
     uid: String,
     id_constant: String,
     name: String,
-    model: String
+    model: String,
 }
 
 impl YarpBuilding {
@@ -101,8 +122,9 @@ pub struct CodeGenerator<W: Write> {
     uid_registry: BTreeMap<String, String>,
     model_registry: BTreeMap<IdReference, String>,
     current_unit_list: Vec<IdReference>,
-    current_building_list: Vec<String>,
+    current_building_list: Vec<IdReference>,
     unit_shops: Vec<YarpUnitShop>,
+    builders: Vec<YarpBuilder>,
     current_shop_x: i32,
     current_shop_y: i32,
     current_shop_model: String,
@@ -119,6 +141,7 @@ impl<W: Write> CodeGenerator<W> {
             uid_registry: BTreeMap::new(),
             model_registry: BTreeMap::new(),
             unit_shops: Vec::new(),
+            builders: Vec::new(),
             current_shop_x: 0,
             current_shop_y: 0,
             current_shop_model: "".to_string()
@@ -132,7 +155,7 @@ impl<W: Write> CodeGenerator<W> {
                     panic!("Trying to add more than 12 units to a shop.");
                 }
 
-                let yunit = YarpUnit::new(unit.uid, unit.name, unit.model);
+                let yunit = YarpUnit::new(unit.uid, unit.name, unit.model.trim().to_string());
 
                 self.register_uid(&yunit.uid, &yunit.id_constant);
                 self.current_shop_model = yunit.model.to_string();
@@ -144,10 +167,11 @@ impl<W: Write> CodeGenerator<W> {
 
             Record::UnitShop(shop) => {
                 let old_shop = replace(&mut self.current_unit_list, Vec::new());
+                println!("{:?}", old_shop);
                 let unit_shop = YarpUnitShop::new(
                     shop.uid,
                     shop.name,
-                    shop.model.unwrap_or_else(|| self.current_shop_model.clone()),
+                    shop.model.unwrap_or_else(|| self.current_shop_model.clone()).trim().to_string(),
                     old_shop,
                     self.current_shop_x,
                     self.current_shop_y,
@@ -168,11 +192,11 @@ impl<W: Write> CodeGenerator<W> {
                     panic!("Trying to add more than 11 buildings to a builder.");
                 }
 
-                let ybuilding = YarpBuilding::new(building.uid, building.name, building.model);
+                let ybuilding = YarpBuilding::new(building.uid, building.name, building.model.trim().to_string());
 
                 self.register_uid(&ybuilding.uid, &ybuilding.id_constant);
 
-                self.current_building_list.push(ybuilding.uid.clone());
+                self.current_building_list.push(Constant(ybuilding.uid.clone()));
                 self.buildings.push(ybuilding);
             },
 
@@ -183,13 +207,26 @@ impl<W: Write> CodeGenerator<W> {
 
                 let id_reference = Literal(format!("'{}'", unit.id));
                 self.current_unit_list.push(id_reference.clone());
-                // self.register_model(id_reference, &unit.model);
                 self.current_shop_model = unit.model;
             },
 
             Record::CustomBuilder(builder) => {
-                replace(&mut self.current_building_list, Vec::new());
-            },
+                if self.current_unit_list.len() > 11 {
+                    panic!("Trying to add more than 12 builders to a shop.");
+                }
+
+                let old_builder = replace(&mut self.current_building_list, Vec::new());
+                let builder = YarpBuilder::new(
+                    builder.uid,
+                    builder.name,
+                    builder.model.unwrap_or_else(||self.current_shop_model.clone()).trim().to_string(),
+                    old_builder
+                );
+                
+                self.register_uid(&builder.uid, &builder.id_constant);
+                self.current_unit_list.push(Constant(builder.uid.clone()));
+                self.builders.push(builder);
+            }
 
             Record::SetShopModel(record) => {
                 self.current_shop_model = record.model;
@@ -197,7 +234,12 @@ impl<W: Write> CodeGenerator<W> {
 
             Record::StockUnitModel(record) => {
                 let id_reference = Literal(format!("'{}'", record.id));
-                self.register_model(id_reference, &record.model);
+                self.register_model(id_reference, &record.model.trim());
+            }
+
+            Record::ShopNewLine(record) => {
+                self.current_shop_x = 0;
+                self.current_shop_y -= 128;
             }
             _ => (),
         }
@@ -220,12 +262,22 @@ impl<W: Write> CodeGenerator<W> {
             .iter()
             .for_each(|building| Self::emit_constant_id(writer, &building.id_constant));
 
+        self.builders
+            .iter()
+            .for_each(|builder| Self::emit_constant_id(writer, &builder.id_constant));
+
         Self::emit_newline(writer);
         Self::emit_definitions_start(writer);
 
         self.units
             .iter()
             .for_each(|unit| Self::emit_unit_definition(writer, unit));
+
+        Self::emit_newline(writer);
+
+        self.builders
+            .iter()
+            .for_each(|builder| Self::emit_builder_definition(writer, registry, builder));
 
         Self::emit_newline(writer);
 
@@ -304,6 +356,27 @@ impl<W: Write> CodeGenerator<W> {
             "\tCodegenUtils.customBuilding({}, \"{}\", \"{}\")",
             building.id_constant, building.model, building.name
         ).unwrap();
+    }
+
+    fn emit_builder_definition(writer: &mut W, registry: &BTreeMap<String, String>, builder: &YarpBuilder) {
+        writeln!(
+            writer,
+            "\tCodegenUtils.customBuilder({}, \"{}\", \"{}\", {})",
+            builder.id_constant,
+            builder.model,
+            builder.name,
+            builder.built_ids
+                .iter()
+                .map(|s| {
+                    match s {
+                        IdReference::Constant(s) => registry.get(s),
+                        IdReference::Literal(s) => Some(s)
+                    }
+                })
+                .filter_map(|s| s)
+                .map(|s| s.to_string() + ".toRawCode()")
+                .join(" + \",\" + ")
+        );
     }
 
     fn emit_shop_definition(

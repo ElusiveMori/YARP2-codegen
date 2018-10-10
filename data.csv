@@ -1,4 +1,4 @@
-
+RecordType,dat1,dat2,dat3,dat4,dat5
 Comment,Arabic
 SetDefaultIcon,ReplaceableTextures\\CommandButtons\\BTNAncestralSpirit.blp
 
@@ -139,6 +139,8 @@ CustomBuilding,gob5,Tower,YARP\\Buildings\\Goblin\\GoblinTower.mdx
 
 CustomBuilder,gob,Goblin Buildings
 
+UnitShop,bld-custom-1,Custom Buildings 1
+
 Comment,Gondolian
 SetDefaultIcon,ReplaceableTextures\\CommandButtons\\BTNGuardTower.blp
 
@@ -264,6 +266,8 @@ CustomBuilder,sunchpbld,Sunchip's House Components
 
 Comment,Tranquil
 SetDefaultIcon,ReplaceableTextures\\CommandButtons\\BTNAdvancedFrostTower.blp
+
+UnitShop,bld-custom-2,Custom Buildings 2
 
 CustomBuilding,trnql01,Ceiling Rays,YARP\\Buildings\\TranquilBuildings\\Ceiling Rays.mdx
 CustomBuilding,trnql02,Single Door 1,YARP\\Buildings\\TranquilBuildings\\Door 1.mdx
@@ -656,7 +660,7 @@ CustomBuilding,artarchsunkenruined,Ruined Sunken Archway,Doodads\\Ruins\\Structu
 CustomBuilder,artarch,Structure Archways
 
 SetShopScale,0.25
-BuilderShop,arch,Archways
+UnitShop,arch,Archways
 SetShopScale,0.5
 
 Comment,broken
@@ -711,7 +715,7 @@ CustomBuilding,cityruin7,Ruined Building 7,Doodads\\Cityscape\\Structures\\CityB
 CustomBuilder,brokencity,Broken City
 
 SetShopScale,1
-BuilderShop,broken,Broken Stuff
+UnitShop,broken,Broken Stuff
 SetShopScale,0.5
 
 SetDefaultIcon,ReplaceableTextures\\CommandButtons\\BTNAnimateDead.blp
@@ -798,7 +802,7 @@ CustomBuilding,northrendtombstone3,Northrend Tomb Stone 3,Doodads\\Northrend\\Pr
 CustomBuilder,graveyard-graves2,Graves
 
 SetShopScale,1
-BuilderShop,graveyard,Graveyard Stuff
+UnitShop,graveyard,Graveyard Stuff
 SetShopScale,0.5
 
 SetShopModel,Doodads\\Cinematic\\GlowingRunes\\GlowingRunes0
@@ -841,7 +845,7 @@ CustomBuilding,blackcitadelrune6,Black Citadel Rune 6,Doodads\\BlackCitadel\\Pro
 CustomBuilding,blackcitadelrune7,Black Citadel Rune 7,Doodads\\BlackCitadel\\Props\\RuneArt\\RuneArt6.mdx
 CustomBuilder,bcrunes,Black Citadel Runes
 
-BuilderShop,magic,Magic Stuff
+UnitShop,magic,Magic Stuff
 
 SetShopScale,1
 SetShopModel,Doodads\\Cityscape\\Plants\\CityBush\\CityBush
@@ -943,6 +947,8 @@ CustomBuilding,sunkenwallvines1,Sunken Wall Vines 1,Doodads\\Ruins\\Terrain\\Cit
 CustomBuilding,sunkenwallvines2,Sunken Wall Vines 2,Doodads\\Ruins\\Terrain\\CityCliffVines1\\CityCliffVines1.mdx
 CustomBuilder,nature-vines1,Vines Builder 1
 
+UnitShop,nature1,Nature Stuff 1
+
 CustomBuilding,norththorns1,Northrend Thorns 1,Doodads\\Northrend\\Plants\\North_Thorns\\North_Thorns0.mdx
 CustomBuilding,norththorns2,Northrend Thorns 2,Doodads\\Northrend\\Plants\\North_Thorns\\North_Thorns1.mdx
 CustomBuilding,norththorns3,Northrend Thorns 3,Doodads\\Northrend\\Plants\\North_Thorns\\North_Thorns2.mdx
@@ -991,7 +997,7 @@ CustomBuilding,flowers4,Flowers 4,Doodads\\Ruins\\Plants\\Ruins_Flower\\Ruins_Fl
 CustomBuilding,flowers5,Flowers 5,Doodads\\Ruins\\Plants\\Ruins_Flower\\Ruins_Flower4.mdx
 CustomBuilder,nature-flowers,Flowers
 
-BuilderShop,nature,Nature Stuff
+UnitShop,nature2,Nature Stuff 2
 SetShopScale,0.5
 
 SetShopScale,1
@@ -1015,7 +1021,7 @@ CustomBuilding,ashenrubble1,Ashenvale Rubble 1,Doodads\\Ashenvale\\Structures\\A
 CustomBuilding,ashenrubble2,Ashenvale Rubble 2,Doodads\\Ashenvale\\Structures\\AshenRubble\\AshenRubble1.mdx
 CustomBuilding,ashenrubble3,Ashenvale Rubble 3,Doodads\\Ashenvale\\Structures\\AshenRubble\\AshenRubble2.mdx
 CustomBuilder,rocks-ashen2,Ashenvale Rubble Builder
-BuilderShop,rocks-ashen,Ashenvale Rocks
+UnitShop,rocks-ashen,Ashenvale Rocks
 
 SetShopModel,Doodads\\Barrens\\Rocks\\Barrens_Rocks\\Barrens_Rocks0
 
@@ -1058,7 +1064,7 @@ CustomBuilding,barrensspires6,Barrens Spires 6,Doodads\\Barrens\\Rocks\\Barrens_
 CustomBuilding,barrensspires7,Barrens Spires 7,Doodads\\Barrens\\Rocks\\Barrens_Spires\\Barrens_Spires6.mdx
 CustomBuilding,barrensspires8,Barrens Spires 8,Doodads\\Barrens\\Rocks\\Barrens_Spires\\Barrens_Spires7.mdx
 CustomBuilder,rocks-barren4,Barrens Spires Builder
-BuilderShop,rocks-barren,Barren Rocks
+UnitShop,rocks-barren,Barren Rocks
 
 SetShopModel,Doodads\\Dungeon\\Rocks\\DungeonRock\\DungeonRock0
 
@@ -1109,7 +1115,7 @@ CustomBuilding,rockchunksunder4,Underground Rock Chunks 4,Doodads\\Terrain\\G_Ro
 CustomBuilding,rockchunksunder5,Underground Rock Chunks 5,Doodads\\Terrain\\G_RockChunks\\G_RockChunks4.mdx
 CustomBuilding,rockchunksunder6,Underground Rock Chunks 6,Doodads\\Terrain\\G_RockChunks\\G_RockChunks5.mdx
 CustomBuilder,rocks-chunks-under,Underground Rock Chunks
-BuilderShop,rocks-under,Underground Rocks
+UnitShop,rocks-under,Underground Rocks
 
 SetShopModel,Doodads\\Felwood\\Rocks\\FelwoodRock\\FelwoodRock0
 
@@ -1142,7 +1148,7 @@ CustomBuilding,felspires6,Felwood Spires 6,Doodads\\Felwood\\Rocks\\Felwood_Spir
 CustomBuilding,felspires7,Felwood Spires 7,Doodads\\Felwood\\Rocks\\Felwood_Spires\\Felwood_Spires6.mdx
 CustomBuilding,felspires8,Felwood Spires 8,Doodads\\Felwood\\Rocks\\Felwood_Spires\\Felwood_Spires7.mdx
 CustomBuilder,rocks-felwood3,Felwood Spires Builder
-BuilderShop,rocks-fel,Felwood Rocks
+UnitShop,rocks-fel,Felwood Rocks
 
 SetShopModel,Doodads\\Icecrown\\Rocks\\Ice_SnowRock\\Ice_SnowRock0
 
@@ -1197,7 +1203,7 @@ CustomBuilding,icecrownsnowrock8,Icecrown Snow Rock 8,Doodads\\Icecrown\\Rocks\\
 CustomBuilding,icecrownsnowrock9,Icecrown Snow Rock 9,Doodads\\Icecrown\\Rocks\\Ice_SnowRock\\Ice_SnowRock8.mdx
 CustomBuilding,icecrownsnowrock10,Icecrown Snow Rock 10,Doodads\\Icecrown\\Rocks\\Ice_SnowRock\\Ice_SnowRock9.mdx
 CustomBuilder,rocks-icecrown5,Icecrown Snowy Rocks Builder
-BuilderShop,rocks-icecrown,Icecrown Rocks
+UnitShop,rocks-icecrown,Icecrown Rocks
 
 SetShopModel,Doodads\\LordaeronSummer\\Rocks\\Lords_Rock\\Lords_Rock0
 
@@ -1213,7 +1219,7 @@ CustomBuilding,lordaeronrock7,Lordaeron Rock 7,Doodads\\LordaeronSummer\\Rocks\\
 CustomBuilding,lordaeronrock8,Lordaeron Rock 8,Doodads\\LordaeronSummer\\Rocks\\Lords_Rock\\Lords_Rock7.mdx
 CustomBuilding,lordaeronrock9,Lordaeron Rock 9,Doodads\\LordaeronSummer\\Rocks\\Lords_Rock\\Lords_Rock8.mdx
 CustomBuilding,lordaeronrock10,Lordaeron Rock 10,Doodads\\LordaeronSummer\\Rocks\\Lords_Rock\\Lords_Rock9.mdx
-CustomBuilder,rocks-lordaeron,Lordaeron Rocks
+CustomBuilder,rocks-lordaeron1,Lordaeron Rocks 1
 Comment,rocks-chunkslordaeron
 SetDefaultIcon,ReplaceableTextures\\CommandButtons\\BTNGatherGold.blp
 CustomBuilding,lordaeronrockchunk1,Lordaeron Rock Chunk 1,Doodads\\LordaeronSummer\\Terrain\\LoardaeronRockChunks\\LoardaeronRockChunks0.mdx
@@ -1223,7 +1229,7 @@ CustomBuilding,lordaeronrockchunk4,Lordaeron Rock Chunk 4,Doodads\\LordaeronSumm
 CustomBuilding,lordaeronrockchunk5,Lordaeron Rock Chunk 5,Doodads\\LordaeronSummer\\Terrain\\LoardaeronRockChunks\\LoardaeronRockChunks4.mdx
 CustomBuilding,lordaeronrockchunk6,Lordaeron Rock Chunk 6,Doodads\\LordaeronSummer\\Terrain\\LoardaeronRockChunks\\LoardaeronRockChunks5.mdx
 CustomBuilder,rocks-chunks-lordaeron,Lordaeron Rock Chunks
-BuilderShop,rocks-lordaeron,Lordaeron Rocks
+UnitShop,rocks-lordaeron,Lordaeron Rocks
 
 SetShopModel,Doodads\\Northrend\\Rocks\\North_Rocks\\North_Rocks0
 
@@ -1266,7 +1272,7 @@ CustomBuilding,northwebrocks6,Nothrend Web Rocks 6,Doodads\\Northrend\\Rocks\\No
 CustomBuilding,northwebrocks7,Nothrend Web Rocks 7,Doodads\\Northrend\\Rocks\\North_WebRocks\\North_WebRocks6.mdx
 CustomBuilding,northwebrocks8,Nothrend Web Rocks 8,Doodads\\Northrend\\Rocks\\North_WebRocks\\North_WebRocks7.mdx
 CustomBuilder,rocks-north4,Northrend Webbed Rocks Builder
-BuilderShop,rocks-north,Northrend Rocks
+UnitShop,rocks-north,Northrend Rocks
 
 SetShopModel,Doodads\\Outland\\Rocks\\Outland_Rock\\Outland_Rock0
 
@@ -1320,7 +1326,7 @@ CustomBuilding,rockchunksred4,Red Rock Chunks 4,Doodads\\Terrain\\RockChunks\\Ro
 CustomBuilding,rockchunksred5,Red Rock Chunks 5,Doodads\\Terrain\\RockChunks\\RockChunks4.mdx
 CustomBuilding,rockchunksred6,Red Rock Chunks 6,Doodads\\Terrain\\RockChunks\\RockChunks5.mdx
 CustomBuilder,rocks-chunks-red,Red Rock Chunks
-BuilderShop,rocks-outland,Outland Rocks
+UnitShop,rocks-outland,Outland Rocks
 
 SetShopModel,Doodads\\Ruins\\Rocks\\Ruins_Rock\\Ruins_Rock0
 
@@ -1360,7 +1366,7 @@ CustomBuilding,sunkenspires6,Sunken Spires 6,Doodads\\Ruins\\Rocks\\Ruins_Spires
 CustomBuilding,sunkenspires7,Sunken Spires 7,Doodads\\Ruins\\Rocks\\Ruins_Spires\\Ruins_Spires6.mdx
 CustomBuilding,sunkenspires8,Sunken Spires 8,Doodads\\Ruins\\Rocks\\Ruins_Spires\\Ruins_Spires7.mdx
 CustomBuilder,rocks-sunken4,Sunken Spires Builder
-BuilderShop,rocks-sunken,Sunken Rocks
+UnitShop,rocks-sunken,Sunken Rocks
 
 SetShopScale,0.5
 
@@ -1403,7 +1409,7 @@ CustomBuilding,icecrownwalldiag15,Icecrown Wall (/) (No Caps),  Doodads\\Icecrow
 CustomBuilding,icecrownwalldiag23,Icecrown Wall (\\) (Both Caps),Doodads\\Icecrown\\Terrain\\IceCrownWall45\\IceCrownWall452.mdx
 CustomBuilding,icecrownwalldiag25,Icecrown Wall (\\) (No Caps), Doodads\\Icecrown\\Terrain\\IceCrownWall45\\IceCrownWall454.mdx
 CustomBuilder,walls-icecrown-regular,Icecrown Regular Walls
-BuilderShop,walls-icecrown,Icecrown Walls
+UnitShop,walls-icecrown,Icecrown Walls
 
 SetShopModel,Doodads\\LordaeronSummer\\Terrain\\StoneWall0\\StoneWall02
 Comment,walls-lordaeron
@@ -1432,7 +1438,7 @@ CustomBuilding,lordaeronrubble,Lordaeron Ruined Wall,Doodads\\LordaeronSummer\\P
 CustomBuilding,lordaeronwallfountain1,Lordaeron Wall Fountain 1,Doodads\\LordaeronSummer\\Props\\WallFountainCliff\\WallFountainCliff0.mdx
 CustomBuilding,lordaeronwallfountain2,Lordaeron Wall Fountain 2,Doodads\\LordaeronSummer\\Props\\WallFountainCliff\\WallFountainCliff1.mdx
 CustomBuilder,walls-lordaeron-others,Lordaeron Misc Walls
-BuilderShop,walls-lordaeron,Lordaeron Walls
+UnitShop,walls-lordaeron,Lordaeron Walls
 
 SetShopModel,Doodads\\Ruins\\Terrain\\RuinsWall0\\RuinsWall02
 Comment,walls-sunken
@@ -1462,7 +1468,7 @@ CustomBuilding,sunkenwalldiag15,Sunken Wall (/) (No Caps),  Doodads\\Ruins\\Terr
 CustomBuilding,sunkenwalldiag23,Sunken Wall (\\) (Both Caps),Doodads\\Ruins\\Terrain\\RuinsWall45\\RuinsWall452.mdx
 CustomBuilding,sunkenwalldiag25,Sunken Wall (\\) (No Caps), Doodads\\Ruins\\Terrain\\RuinsWall45\\RuinsWall454.mdx
 CustomBuilder,walls-sunken-regular,Sunken Regular Walls
-BuilderShop,walls-sunken,Sunken Walls
+UnitShop,walls-sunken,Sunken Walls
 
 SetShopModel,Doodads\\Cityscape\\Structures\\City_ColumnSingle\\City_ColumnSingle
 Comment,walls-fences
@@ -1590,6 +1596,8 @@ CustomBuilding,citywallcaplantern,City Wall Cap \\w Lantern,Doodads\\Cityscape\\
 CustomBuilding,citywallcaptallnolantern,City Wall Cap \\w/o Lantern,Doodads\\Cityscape\\Structures\\City_LowWall_TallEndCapWithoutLantern\\City_LowWall_TallEndCapWithoutLantern.mdx
 CustomBuilder,citywall,City Walls
 
+UnitShop,structures1,Structures 1
+
 Comment,gates
 SetDefaultIcon,ReplaceableTextures\\CommandButtons\\BTNHumanBuild.blp
 CustomBuilding,gatesargeras,Sargeras Gate,Doodads\\Cinematic\\SargerasGate\\SargerasGate.mdx
@@ -1711,6 +1719,8 @@ CustomBuilding,icecrownpillar2,Icecrown Pillar 2,Doodads\\Icecrown\\Props\\IceCr
 CustomBuilding,icecrownpillar3,Icecrown Pillar 3,Doodads\\Icecrown\\Props\\IceCrownPillar\\IceCrownPillar2.mdx
 CustomBuilder,pillarsother,Other Pillars
 
+UnitShop,structures2,Structures 2
+
 SetDefaultIcon,ReplaceableTextures\\CommandButtons\\BTNHumanBuild.blp
 Comment,campaign-and-neutral
 CustomBuilding,goblinlab,Goblin Laboratory,buildings\\Other\\AmmoDump\\AmmoDump.mdx
@@ -1761,7 +1771,7 @@ CustomBuilding,tavern,Tavern,buildings\\Other\\Tavern\\Tavern.mdx
 CustomBuilding,waygate,Waygate,buildings\\Other\\Waygate\\Waygate.mdx
 CustomBuilder,campaign5,Campaign and Neutral 5
 
-BuilderShop,structures5,Structures 5
+UnitShop,structures5,Structures 5
 
 SetDefaultIcon,ReplaceableTextures\\CommandButtons\\BTNCrushingWave.blp
 SetShopModel,units\\human\\WaterElemental\\WaterElemental
@@ -1831,7 +1841,7 @@ CustomBuilding,waterfall,Waterfall,Doodads\\Terrain\\CliffDoodad\\Waterfall\\Wat
 CustomBuilder,water-other,Water Misc
 
 SetShopScale,0.8
-BuilderShop,water,Water Stuff
+UnitShop,water,Water Stuff
 SetShopScale,0.5
 
 Comment,misc
@@ -1948,6 +1958,8 @@ CustomBuilding,minecartempty,Empty Minecart,Doodads\\Dungeon\\Props\\MineCartEmp
 CustomBuilding,eggsack1,Egg Sack 1,Doodads\\Dungeon\\Terrain\\EggSack\\EggSack0.mdx
 CustomBuilding,eggsack2,Egg Sack 2,Doodads\\Dungeon\\Terrain\\EggSack\\EggSack1.mdx
 CustomBuilder,underground,Underground Stuff
+
+UnitShop,misc1,Miscellanous Stuff 1
 
 SetDefaultIcon,ReplaceableTextures\\CommandButtons\\BTNOrcBattleStandard.blp
 CustomBuilding,obstacle1,Obstacle 1,Doodads\\Outland\\Props\\Obstacle\\Obstacle0.mdx
@@ -2075,6 +2087,8 @@ CustomBuilding,clearicerock5,Clear Ice Rock 5,Doodads\\Icecrown\\Terrain\\ClearI
 CustomBuilding,clearicerock6,Clear Ice Rock 6,Doodads\\Icecrown\\Terrain\\ClearIceRock\\ClearIceRock5.mdx
 CustomBuilder,icerock,Ice Rocks
 
+UnitShop,misc2,Miscellanous Stuff 2
+
 Comment,ice-floating
 CustomBuilding,iceedge1,Ice Edge 1,Doodads\\Icecrown\\Water\\IceEdge\\IceEdge0.mdx
 CustomBuilding,iceedge2,Ice Edge 2,Doodads\\Icecrown\\Water\\IceEdge\\IceEdge1.mdx
@@ -2103,7 +2117,7 @@ CustomBuilding,bannerorc1,Orc Banner 1,Doodads\\LordaeronSummer\\Props\\BannerOr
 CustomBuilding,bannerorc2,Orc Banner 2,Doodads\\LordaeronSummer\\Props\\BannerOrc\\BannerOrc1.mdx
 CustomBuilding,tutorialorcbanner,Tutorial Orc Banner,Doodads\\LordaeronSummer\\Props\\TutorialOrcBanner\\TutorialOrcBanner.mdx
 CustomBuilder,flags,Flags
-BuilderShop,misc,Miscellanous Stuff
+UnitShop,misc3,Miscellanous Stuff 3
 
 SetShopScale,1
 

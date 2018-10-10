@@ -70,6 +70,7 @@ impl UnitShopRecord {
 pub struct CustomBuilderRecord {
     pub uid: String,
     pub name: String,
+    pub model: Option<String>,
 }
 
 impl CustomBuilderRecord {
@@ -77,6 +78,7 @@ impl CustomBuilderRecord {
         Some(CustomBuilderRecord {
             uid: string_record.get(1).unwrap().to_string(),
             name: string_record.get(2).unwrap().to_string(),
+            model: string_record.get(3).map(|f| f.to_string()),
         })
     }
 }
@@ -125,6 +127,17 @@ impl StockUnitModelRecord {
 }
 
 #[derive(Debug, Eq, PartialEq)]
+pub struct ShopNewLineRecord {
+}
+
+impl ShopNewLineRecord {
+    fn from_record(string_record: &StringRecord) -> Option<ShopNewLineRecord> {
+        Some(ShopNewLineRecord {
+        })
+    }
+}
+
+#[derive(Debug, Eq, PartialEq)]
 pub struct AttachmentRecord {}
 
 impl AttachmentRecord {
@@ -153,7 +166,8 @@ pub enum Record {
     SetShopModel(SetShopModelRecord),
     Attachment(AttachmentRecord),
     AttachmentShop(AttachmentShopRecord),
-    StockUnitModel(StockUnitModelRecord)
+    StockUnitModel(StockUnitModelRecord),
+    ShopNewLine(ShopNewLineRecord)
 }
 
 impl Record {
@@ -172,6 +186,7 @@ impl Record {
                 "AttachmentShop" => AttachmentShopRecord::from_record(string_record).map(Record::AttachmentShop),
                 "SetShopModel" => SetShopModelRecord::from_record(string_record).map(Record::SetShopModel),
                 "StockUnitModel" => StockUnitModelRecord::from_record(string_record).map(Record::StockUnitModel),
+                "ShopNewLine" => ShopNewLineRecord::from_record(string_record).map(Record::ShopNewLine),
                 _ => None,
             };
         }
