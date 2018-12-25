@@ -9,6 +9,8 @@ pub struct CustomUnitRecord {
 
 impl CustomUnitRecord {
     fn from_record(string_record: &StringRecord) -> Option<CustomUnitRecord> {
+        let uid = string_record.get(1)?.to_string();
+
         Some(CustomUnitRecord {
             uid: string_record.get(1).unwrap().to_string(),
             name: string_record.get(2).unwrap().to_string(),

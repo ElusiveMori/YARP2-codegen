@@ -3,13 +3,15 @@ use std::collections::HashMap;
 use std::io::Write;
 
 use heck::*;
-use records::*;
+use crate::records::*;
 use std::mem::replace;
 
 use std::iter::*;
 use itertools::Itertools;
-use codegen::IdReference::Constant;
-use codegen::IdReference::Literal;
+use crate::codegen::IdReference::Constant;
+use crate::codegen::IdReference::Literal;
+
+const REGISTRY_CHUNK_SIZE: usize = 400;
 
 #[derive(Debug, PartialEq, PartialOrd, Eq, Ord, Clone)]
 enum IdReference {
@@ -116,35 +118,35 @@ impl YarpUnitShop {
 }
 
 pub struct CodeGenerator<W: Write> {
-    writer: W,
-    units: Vec<YarpUnit>,
-    buildings: Vec<YarpBuilding>,
-    uid_registry: BTreeMap<String, String>,
-    model_registry: BTreeMap<IdReference, String>,
-    current_unit_list: Vec<IdReference>,
+    writer               : W,
+    units                : Vec<YarpUnit>,
+    buildings            : Vec<YarpBuilding>,
+    uid_registry         : BTreeMap<String, String>,
+    model_registry       : BTreeMap<IdReference, String>,
+    current_unit_list    : Vec<IdReference>,
     current_building_list: Vec<IdReference>,
-    unit_shops: Vec<YarpUnitShop>,
-    builders: Vec<YarpBuilder>,
-    current_shop_x: i32,
-    current_shop_y: i32,
-    current_shop_model: String,
+    unit_shops           : Vec<YarpUnitShop>,
+    builders             : Vec<YarpBuilder>,
+    current_shop_x       : i32,
+    current_shop_y       : i32,
+    current_shop_model   : String,
 }
 
 impl<W: Write> CodeGenerator<W> {
     pub fn new(writer: W) -> CodeGenerator<W> {
         CodeGenerator {
             writer,
-            units: Vec::new(),
-            buildings: Vec::new(),
-            current_unit_list: Vec::new(),
+            units                : Vec::new(),
+            buildings            : Vec::new(),
+            current_unit_list    : Vec::new(),
             current_building_list: Vec::new(),
-            uid_registry: BTreeMap::new(),
-            model_registry: BTreeMap::new(),
-            unit_shops: Vec::new(),
-            builders: Vec::new(),
-            current_shop_x: 0,
-            current_shop_y: 0,
-            current_shop_model: "".to_string()
+            uid_registry         : BTreeMap::new(),
+            model_registry       : BTreeMap::new(),
+            unit_shops           : Vec::new(),
+            builders             : Vec::new(),
+            current_shop_x       : 0,
+            current_shop_y       : 0,
+            current_shop_model   : "".to_string()
         }
     }
 
@@ -195,6 +197,7 @@ impl<W: Write> CodeGenerator<W> {
                 let ybuilding = YarpBuilding::new(building.uid, building.name, building.model.trim().to_string());
 
                 self.register_uid(&ybuilding.uid, &ybuilding.id_constant);
+                self.register_model(Constant(ybuilding.id_constant.to_string()), &ybuilding.model);
 
                 self.current_building_list.push(Constant(ybuilding.uid.clone()));
                 self.buildings.push(ybuilding);
@@ -376,7 +379,7 @@ impl<W: Write> CodeGenerator<W> {
                 .filter_map(|s| s)
                 .map(|s| s.to_string() + ".toRawCode()")
                 .join(" + \",\" + ")
-        );
+        ).unwrap();
     }
 
     fn emit_shop_definition(
@@ -406,21 +409,20 @@ impl<W: Write> CodeGenerator<W> {
 
     fn emit_shop_placement_start(writer: &mut W) {
         writeln!(writer, "public function placeShops(real x, real y)").unwrap();
-        writeln!(writer, "\tlet offset = vec2(x, y)").unwrap();
         writeln!(writer, "\tlet owner = players[bj_PLAYER_NEUTRAL_EXTRA]").unwrap();
     }
 
     fn emit_shop_placement(writer: &mut W, shop: &YarpUnitShop) {
         writeln!(
             writer,
-            "\tcreateUnit(owner, {}, offset + vec2({}, {}), angle(0))",
+            "\tplaceShop(owner, {}, x + {}, y + {})",
             shop.id_constant, shop.x, shop.y
         ).unwrap();
     }
 
     fn emit_registry(writer: &mut W, registry: &BTreeMap<String, String>) {
         let mut counter = 0;
-        registry.iter().chunks(40).into_iter().enumerate().for_each(|(index, chunk)| {
+        registry.iter().chunks(REGISTRY_CHUNK_SIZE).into_iter().enumerate().for_each(|(index, chunk)| {
             counter += 1;
             writeln!(
                 writer,
@@ -431,7 +433,7 @@ impl<W: Write> CodeGenerator<W> {
             chunk.for_each(|(uid, id_constant)| {
                 writeln!(
                     writer,
-                    "\tregisterUid(compiletime(\"{}\".getHash()), {})",
+                    "\tSaveInteger(REGISTRIES, KEY_UID, compiletime(\"{}\".getHash()), {})",
                     uid, id_constant
                 ).unwrap();
             });
@@ -445,13 +447,13 @@ impl<W: Write> CodeGenerator<W> {
         ).unwrap();
 
         for i in 0..counter {
-            writeln!(writer, "\tpopulateUidRegistry{}()", i);
+            writeln!(writer, "\tpopulateUidRegistry{}()", i).unwrap();
         }
     }
 
     fn emit_reverse_registry(writer: &mut W, registry: &BTreeMap<String, String>) {
         let mut counter = 0;
-        registry.iter().chunks(40).into_iter().enumerate().for_each(|(index, chunk)| {
+        registry.iter().chunks(REGISTRY_CHUNK_SIZE).into_iter().enumerate().for_each(|(index, chunk)| {
             counter += 1;
             writeln!(
                 writer,
@@ -462,7 +464,7 @@ impl<W: Write> CodeGenerator<W> {
             chunk.for_each(|(uid, id_constant)| {
                 writeln!(
                     writer,
-                    "\tregisterReverseUid({}, \"{}\")",
+                    "\tSaveStr(REGISTRIES, KEY_REVERSE_UID, {}, \"{}\")",
                     id_constant, uid
                 ).unwrap();
             });
@@ -476,7 +478,7 @@ impl<W: Write> CodeGenerator<W> {
         ).unwrap();
 
         for i in 0..counter {
-            writeln!(writer, "\tpopulateUidReverseRegistry{}()", i);
+            writeln!(writer, "\tpopulateUidReverseRegistry{}()", i).unwrap();
         }
     }
 
@@ -488,7 +490,7 @@ impl<W: Write> CodeGenerator<W> {
         writeln!(writer, "\tlet registry = new HashSet<int>").unwrap();
 
         for shop in unit_shops {
-            writeln!(writer, "\tregistry.add({})", shop.id_constant).unwrap();
+            writeln!(writer, "\tregistry.add2({})", shop.id_constant).unwrap();
         }
 
         writeln!(writer, "\treturn registry").unwrap();
@@ -496,7 +498,7 @@ impl<W: Write> CodeGenerator<W> {
 
     fn emit_model_registry(writer: &mut W, registry: &BTreeMap<IdReference, String>) {
         let mut counter = 0;
-        registry.iter().chunks(40).into_iter().enumerate().for_each(|(index, chunk)| {
+        registry.iter().chunks(REGISTRY_CHUNK_SIZE).into_iter().enumerate().for_each(|(index, chunk)| {
             counter += 1;
 
             writeln!(
@@ -508,7 +510,7 @@ impl<W: Write> CodeGenerator<W> {
             chunk.for_each(|(id_reference, model)| {
                 writeln!(
                     writer,
-                    "\tregisterModel({}, \"{}\")",
+                    "\tSaveStr(REGISTRIES, KEY_MODEL, {}, \"{}\")",
                     id_reference.to_string(), model
                 ).unwrap();
             });
@@ -522,7 +524,7 @@ impl<W: Write> CodeGenerator<W> {
         ).unwrap();
 
         for i in 0..counter {
-            writeln!(writer, "\tpopulateModelRegistry{}()", i);
+            writeln!(writer, "\tpopulateModelRegistry{}()", i).unwrap();
         }
     }
 }
