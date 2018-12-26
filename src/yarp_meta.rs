@@ -168,26 +168,21 @@ impl YarpUnit {
         }
     }
 
-    fn new_stock(
-        id: UnitIdentifier,
-        model: String,
-    ) -> YarpUnit {
-        YarpUnit::Stock {
-            id, model
-        }
+    fn new_stock(id: UnitIdentifier, model: String) -> YarpUnit {
+        YarpUnit::Stock { id, model }
     }
 
     pub fn id(&self) -> &UnitIdentifier {
         match &self {
-            YarpUnit::Custom {id, ..} => id,
-            YarpUnit::Stock {id, ..} => id
+            YarpUnit::Custom { id, .. } => id,
+            YarpUnit::Stock { id, .. } => id,
         }
     }
 
     pub fn model(&self) -> &str {
         match &self {
-            YarpUnit::Custom {model, ..} => model,
-            YarpUnit::Stock {model, ..} => model,
+            YarpUnit::Custom { model, .. } => model,
+            YarpUnit::Stock { model, .. } => model,
         }
     }
 }

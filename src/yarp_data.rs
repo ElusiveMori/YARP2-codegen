@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 #[derive(Serialize, Deserialize, Default, Debug)]
 pub struct YarpData {
     shops: HashMap<String, Vec<YarpDataUnitShop>>,
-    model_registry: HashMap<String, String>
+    model_registry: HashMap<String, String>,
 }
 
 impl YarpData {
@@ -49,7 +49,10 @@ impl YarpData {
         let mut map = HashMap::default();
         map.insert("other".to_string(), shops);
 
-        YarpData { shops: map, model_registry: HashMap::default() }
+        YarpData {
+            shops: map,
+            model_registry: HashMap::default(),
+        }
     }
 }
 
@@ -128,7 +131,7 @@ impl YarpDataUnit {
         } else {
             YarpDataUnit::Stock(YarpDataStockUnit {
                 rawid: unit.id().rawid().to_string(),
-                model: unit.model().to_string()
+                model: unit.model().to_string(),
             })
         }
     }
