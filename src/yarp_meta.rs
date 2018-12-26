@@ -6,78 +6,81 @@ use std::mem::replace;
 
 #[derive(Debug, Default)]
 pub struct IdRegistry {
-    slab: IdSlab<UniqueId>,
-    by_uid: HashMap<String, Id<UniqueId>>,
-    // by_rawid: HashMap<String, Id<UniqueId>>,
+    slab: IdSlab<UnitIdentifier>,
+    // by_uid: HashMap<String, Id<UnitIdentifier>>,
+    // by_rawid: HashMap<String, Id<UnitIdentifier>>,
 }
 
 impl IdRegistry {
-    fn insert(&mut self, uid: UniqueId) -> UniqueId {
-        let str_uid = uid.uid.to_string();
+    fn insert(&mut self, id: UnitIdentifier) -> UnitIdentifier {
+        let id = self.slab.insert(id);
 
-        let id = self.slab.insert(uid);
-
-        self.by_uid.insert(str_uid, id);
+        // self.by_uid.insert(str_uid, id);
         // self.by_rawid.insert(str_rawid, id);
 
         self.slab[id].clone()
     }
 
-    fn get_by_uid<'a, 'b>(&'a self, uid: &'b str) -> &'a UniqueId {
-        &self.slab[self.by_uid[uid]]
-    }
+    // fn get_by_uid<'a, 'b>(&'a self, uid: &'b str) -> &'a UnitIdentifier {
+    //     &self.slab[self.by_uid[uid]]
+    // }
 
-    // fn get_by_rawid<'a, 'b>(&'a self, rawid: &'b str) -> &'a UniqueId {
-    //     &self.slab[self.by_rawid[rawid]]
+    // fn get_by_rawid<'a, 'b>(&'a self, constant_name: &'b str) -> &'a UnitIdentifier {
+    //     &self.slab[self.by_rawid[constant_name]]
     // }
 }
 
 #[derive(Debug, PartialEq, Eq, Hash, Clone)]
-pub enum IdLiteral {
-    Raw(String),
-    Constant(String),
+pub enum UnitIdentifier {
+    UID { uid: String, constant_name: String },
+    RawID { rawid: String },
 }
 
-impl IdLiteral {
-    fn new_raw(input: String) -> IdLiteral {
-        IdLiteral::Raw(input)
+impl UnitIdentifier {
+    fn new_custom(uid: String) -> UnitIdentifier {
+        UnitIdentifier::UID {
+            constant_name: uid.to_shouty_snake_case(),
+            uid,
+        }
     }
 
-    fn new_constant(input: &str) -> IdLiteral {
-        IdLiteral::Constant(input.to_shouty_snake_case())
+    fn new_stock(rawid: String) -> UnitIdentifier {
+        UnitIdentifier::RawID { rawid }
     }
-}
 
-#[derive(Debug, PartialEq, Eq, Hash, Clone)]
-pub struct UniqueId {
-    pub uid: String,
-    pub rawid: IdLiteral,
-}
+    pub fn uid(&self) -> &str {
+        if let UnitIdentifier::UID { uid, .. } = &self {
+            &uid
+        } else {
+            panic!("cannot call .uid() on non-UID variant")
+        }
+    }
 
-impl UniqueId {
-    fn new(uid: String, rawid: IdLiteral) -> UniqueId {
-        UniqueId { uid, rawid }
+    pub fn rawid(&self) -> &str {
+        if let UnitIdentifier::RawID { rawid } = &self {
+            &rawid
+        } else {
+            panic!("cannot call .rawid() on non-RawID variant")
+        }
     }
 }
 
 #[derive(Debug, Default)]
 pub struct UnitRegistry {
-    pub registry: HashMap<UniqueId, YarpUnit>,
+    pub registry: HashMap<UnitIdentifier, YarpUnit>,
 }
 
 impl UnitRegistry {
     fn insert(&mut self, unit: YarpUnit) {
-        if let YarpUnit::Custom {uid, ..} = &unit {
-            self.registry.insert(uid.clone(), unit);
-        }
+        self.registry.insert(unit.id().clone(), unit);
     }
 
-    fn get_mut(&mut self, uid: &UniqueId) -> &mut YarpUnit {
-        self.registry.get_mut(uid).unwrap()
+    fn get_mut(&mut self, id: &UnitIdentifier) -> &mut YarpUnit {
+        self.registry.get_mut(id).unwrap()
     }
 
-    pub fn get(&self, uid: &UniqueId) -> &YarpUnit {
-        &self.registry[uid]
+    pub fn get(&self, id: &UnitIdentifier) -> &YarpUnit {
+        &self.registry[id]
     }
 }
 
@@ -89,26 +92,29 @@ pub struct ModelRegistry {
 pub enum YarpUnitVariant {
     Unit,
     Building,
-    UnitShop { sold_ids: Vec<UniqueId> },
-    Builder { built_ids: Vec<UniqueId> },
+    UnitShop { sold_ids: Vec<UnitIdentifier> },
+    Builder { built_ids: Vec<UnitIdentifier> },
 }
 
 #[derive(Debug)]
 pub enum YarpUnit {
     Custom {
-        uid: UniqueId,
+        id: UnitIdentifier,
         variant: YarpUnitVariant,
         name: String,
         model: String,
         icon: String,
     },
-    Stock,
+    Stock {
+        id: UnitIdentifier,
+        model: String,
+    },
 }
 
 impl YarpUnit {
-    fn new_unit(uid: UniqueId, name: String, model: String, icon: String) -> YarpUnit {
+    fn new_unit(id: UnitIdentifier, name: String, model: String, icon: String) -> YarpUnit {
         YarpUnit::Custom {
-            uid,
+            id,
             name,
             icon,
             model: model.trim().to_string(),
@@ -116,9 +122,9 @@ impl YarpUnit {
         }
     }
 
-    fn new_building(uid: UniqueId, name: String, model: String, icon: String) -> YarpUnit {
+    fn new_building(id: UnitIdentifier, name: String, model: String, icon: String) -> YarpUnit {
         YarpUnit::Custom {
-            uid,
+            id,
             name,
             icon,
             model: model.trim().to_string(),
@@ -127,14 +133,14 @@ impl YarpUnit {
     }
 
     fn new_shop(
-        uid: UniqueId,
+        id: UnitIdentifier,
         name: String,
         model: String,
         icon: String,
-        sold_ids: &[UniqueId],
+        sold_ids: &[UnitIdentifier],
     ) -> YarpUnit {
         YarpUnit::Custom {
-            uid,
+            id,
             name,
             icon,
             model: model.trim().to_string(),
@@ -145,14 +151,14 @@ impl YarpUnit {
     }
 
     fn new_builder(
-        uid: UniqueId,
+        id: UnitIdentifier,
         name: String,
         model: String,
         icon: String,
-        built_ids: &[UniqueId],
+        built_ids: &[UnitIdentifier],
     ) -> YarpUnit {
         YarpUnit::Custom {
-            uid,
+            id,
             name,
             icon,
             model: model.trim().to_string(),
@@ -161,13 +167,36 @@ impl YarpUnit {
             },
         }
     }
+
+    fn new_stock(
+        id: UnitIdentifier,
+        model: String,
+    ) -> YarpUnit {
+        YarpUnit::Stock {
+            id, model
+        }
+    }
+
+    pub fn id(&self) -> &UnitIdentifier {
+        match &self {
+            YarpUnit::Custom {id, ..} => id,
+            YarpUnit::Stock {id, ..} => id
+        }
+    }
+
+    pub fn model(&self) -> &str {
+        match &self {
+            YarpUnit::Custom {model, ..} => model,
+            YarpUnit::Stock {model, ..} => model,
+        }
+    }
 }
 
 #[derive(Default)]
 pub struct RecordConsumerContext {
-    pub unit_queue: Vec<UniqueId>,
-    pub building_queue: Vec<UniqueId>,
-    pub shop_queue: Vec<UniqueId>,
+    pub unit_queue: Vec<UnitIdentifier>,
+    pub building_queue: Vec<UnitIdentifier>,
+    pub shop_queue: Vec<UnitIdentifier>,
     pub current_shop_model: String,
     pub current_icon_path: String,
 }
@@ -180,48 +209,44 @@ pub fn consume_record(
 ) {
     match record {
         Record::CustomUnit(unit) => {
-            let id_constant = IdLiteral::new_constant(unit.uid);
-            let uid = id_registry.insert(UniqueId::new(unit.uid.to_string(), id_constant));
+            let id = id_registry.insert(UnitIdentifier::new_custom(unit.uid.to_string()));
             let yarp_unit = YarpUnit::new_unit(
-                uid.clone(),
+                id.clone(),
                 unit.name.to_string(),
                 unit.model.to_string(),
                 consumer_context.current_icon_path.to_string(),
             );
-            consumer_context.unit_queue.push(uid);
+            consumer_context.unit_queue.push(id);
             unit_registry.insert(yarp_unit);
         }
         Record::CustomBuilding(building) => {
-            let id_constant = IdLiteral::new_constant(building.uid);
-            let uid = id_registry.insert(UniqueId::new(building.uid.to_string(), id_constant));
+            let id = id_registry.insert(UnitIdentifier::new_custom(building.uid.to_string()));
             let yarp_unit = YarpUnit::new_building(
-                uid.clone(),
+                id.clone(),
                 building.name.to_string(),
                 building.model.to_string(),
                 consumer_context.current_icon_path.to_string(),
             );
-            consumer_context.building_queue.push(uid);
+            consumer_context.building_queue.push(id);
             unit_registry.insert(yarp_unit);
         }
         Record::CustomBuilder(builder) => {
-            let id_constant = IdLiteral::new_constant(builder.uid);
-            let uid = id_registry.insert(UniqueId::new(builder.uid.to_string(), id_constant));
+            let id = id_registry.insert(UnitIdentifier::new_custom(builder.uid.to_string()));
             let yarp_unit = YarpUnit::new_builder(
-                uid.clone(),
+                id.clone(),
                 builder.name.to_string(),
                 "".to_string(),
                 consumer_context.current_icon_path.to_string(),
                 &consumer_context.building_queue,
             );
             consumer_context.building_queue.clear();
-            consumer_context.unit_queue.push(uid);
+            consumer_context.unit_queue.push(id);
             unit_registry.insert(yarp_unit);
         }
         Record::UnitShop(shop) => {
-            let id_constant = IdLiteral::new_constant(shop.uid);
-            let uid = id_registry.insert(UniqueId::new(shop.uid.to_string(), id_constant));
+            let id = id_registry.insert(UnitIdentifier::new_custom(shop.uid.to_string()));
             let yarp_unit = YarpUnit::new_shop(
-                uid.clone(),
+                id.clone(),
                 shop.name.to_string(),
                 consumer_context.current_shop_model.to_string(),
                 consumer_context.current_icon_path.to_string(),
@@ -229,7 +254,14 @@ pub fn consume_record(
             );
             consumer_context.unit_queue.clear();
             unit_registry.insert(yarp_unit);
-            consumer_context.shop_queue.push(uid);
+            consumer_context.shop_queue.push(id);
+        }
+        Record::StockUnit(unit) => {
+            let id = id_registry.insert(UnitIdentifier::new_stock(unit.id.to_string()));
+            let yarp_unit = YarpUnit::new_stock(id.clone(), unit.model.to_string());
+            consumer_context.current_shop_model = unit.model.to_string();
+            consumer_context.unit_queue.push(id);
+            unit_registry.insert(yarp_unit);
         }
         Record::SetShopModel(model) => {
             consumer_context.current_shop_model = model.model.to_string();

@@ -1,11 +1,11 @@
 use crate::yarp_meta::*;
-use fxhash::FxHashMap;
+use fxhash::FxHashMap as HashMap;
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Default, Debug)]
 pub struct YarpData {
-    #[serde(flatten)]
-    categories: FxHashMap<String, Vec<YarpDataUnitShop>>,
+    shops: HashMap<String, Vec<YarpDataUnitShop>>,
+    model_registry: HashMap<String, String>
 }
 
 impl YarpData {
@@ -14,7 +14,6 @@ impl YarpData {
         id_registry: &IdRegistry,
         unit_registry: &UnitRegistry,
     ) -> YarpData {
-        let mut yarp_data = YarpData::default();
         let mut shops = Vec::new();
 
         for unit in consumer_context
@@ -23,15 +22,15 @@ impl YarpData {
             .map(|s| unit_registry.get(s))
         {
             if let YarpUnit::Custom {
-                uid,
+                id,
                 name,
-                icon,
                 model,
                 variant: YarpUnitVariant::UnitShop { sold_ids },
+                ..
             } = unit
             {
                 shops.push(YarpDataUnitShop {
-                    uid: uid.uid.to_string(),
+                    uid: id.uid().to_string(),
                     name: name.to_string(),
                     model: model.to_string(),
                     row: 0,
@@ -47,10 +46,10 @@ impl YarpData {
             }
         }
 
-        let mut map = FxHashMap::default();
+        let mut map = HashMap::default();
         map.insert("other".to_string(), shops);
 
-        YarpData { categories: map }
+        YarpData { shops: map, model_registry: HashMap::default() }
     }
 }
 
@@ -84,6 +83,7 @@ pub struct YarpDataCustomUnit {
 #[derive(Serialize, Deserialize, Debug)]
 pub struct YarpDataStockUnit {
     rawid: String,
+    model: String,
 }
 
 impl YarpDataUnit {
@@ -93,7 +93,7 @@ impl YarpDataUnit {
         unit_registry: &UnitRegistry,
     ) -> YarpDataUnit {
         if let YarpUnit::Custom {
-            uid,
+            id,
             name,
             icon,
             model,
@@ -119,14 +119,17 @@ impl YarpDataUnit {
             };
 
             YarpDataUnit::Custom(YarpDataCustomUnit {
-                uid: uid.uid.to_string(),
+                uid: id.uid().to_string(),
                 name: name.to_string(),
                 icon: icon.to_string(),
                 model: model.to_string(),
                 variant,
             })
         } else {
-            unimplemented!()
+            YarpDataUnit::Stock(YarpDataStockUnit {
+                rawid: unit.id().rawid().to_string(),
+                model: unit.model().to_string()
+            })
         }
     }
 }
