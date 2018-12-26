@@ -1,20 +1,20 @@
 #![allow(unused_imports)]
 #![allow(dead_code)]
-#![allow(unused_variables)]
-
-extern crate csv;
-extern crate heck;
-extern crate itertools;
+#![feature(nll)]
 
 use std::fs::File;
 use std::io::Read;
 use std::io::Write;
 
-mod codegen;
 mod records;
+mod yarp_data;
+mod yarp_meta;
 
-use crate::codegen::*;
 use crate::records::*;
+use crate::yarp_data::YarpData;
+use crate::yarp_meta::*;
+use serde_json;
+use serde_yaml;
 use std::env;
 
 fn process_csv(path: &str) {
@@ -26,7 +26,10 @@ fn process_csv(path: &str) {
         .has_headers(false)
         .from_reader(file_in);
 
-    let mut generator = CodeGenerator::new(file_out);
+    // let mut generator = CodeGenerator::new(file_out);
+    let mut consumer_context = RecordConsumerContext::default();
+    let mut id_registry = IdRegistry::default();
+    let mut unit_registry = UnitRegistry::default();
 
     for (count, record) in reader.records().enumerate() {
         if let Ok(record) = record {
@@ -35,7 +38,12 @@ fn process_csv(path: &str) {
 
             if let Some(parsed_record) = parsed_record {
                 print!("Parsed. {:?}", parsed_record);
-                generator.process_record(parsed_record);
+                consume_record(
+                    parsed_record,
+                    &mut consumer_context,
+                    &mut id_registry,
+                    &mut unit_registry,
+                );
             } else {
                 print!("Couldn't parse. {:?}", record);
             }
@@ -46,7 +54,17 @@ fn process_csv(path: &str) {
         println!();
     }
 
-    generator.emit();
+    println!(
+        "\n\n{}\n\n",
+        serde_yaml::to_string(&YarpData::from_meta(
+            &consumer_context,
+            &id_registry,
+            &unit_registry
+        ))
+        .unwrap()
+    );
+
+    // generator.emit();
 }
 
 fn main() {

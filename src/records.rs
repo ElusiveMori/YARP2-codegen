@@ -1,194 +1,186 @@
 use csv::StringRecord;
 
 #[derive(Debug, Eq, PartialEq)]
-pub struct CustomUnitRecord {
-    pub uid: String,
-    pub name: String,
-    pub model: String,
+pub struct CustomUnitRecord<'src> {
+    pub uid: &'src str,
+    pub name: &'src str,
+    pub model: &'src str,
 }
 
-impl CustomUnitRecord {
+impl<'src> CustomUnitRecord<'src> {
     fn from_record(string_record: &StringRecord) -> Option<CustomUnitRecord> {
-        let uid = string_record.get(1)?.to_string();
-
         Some(CustomUnitRecord {
-            uid: string_record.get(1).unwrap().to_string(),
-            name: string_record.get(2).unwrap().to_string(),
-            model: string_record.get(3).unwrap().to_string(),
+            uid: string_record.get(1).unwrap(),
+            name: string_record.get(2).unwrap(),
+            model: string_record.get(3).unwrap(),
         })
     }
 }
 
 #[derive(Debug, Eq, PartialEq)]
-pub struct StockUnitRecord {
-    pub id: String,
-    pub model: String
+pub struct StockUnitRecord<'src> {
+    pub id: &'src str,
+    pub model: &'src str,
 }
 
-impl StockUnitRecord {
+impl<'src> StockUnitRecord<'src> {
     fn from_record(string_record: &StringRecord) -> Option<StockUnitRecord> {
         Some(StockUnitRecord {
-            id: string_record.get(1).unwrap().to_string(),
-            model: string_record.get(2).unwrap().to_string()
+            id: string_record.get(1).unwrap(),
+            model: string_record.get(2).unwrap(),
         })
     }
 }
 
 #[derive(Debug, Eq, PartialEq)]
-pub struct CustomBuildingRecord {
-    pub uid: String,
-    pub name: String,
-    pub model: String,
+pub struct CustomBuildingRecord<'src> {
+    pub uid: &'src str,
+    pub name: &'src str,
+    pub model: &'src str,
 }
 
-impl CustomBuildingRecord {
+impl<'src> CustomBuildingRecord<'src> {
     fn from_record(string_record: &StringRecord) -> Option<CustomBuildingRecord> {
         Some(CustomBuildingRecord {
-            uid: string_record.get(1).unwrap().to_string(),
-            name: string_record.get(2).unwrap().to_string(),
-            model: string_record.get(3).unwrap().to_string(),
+            uid: string_record.get(1).unwrap(),
+            name: string_record.get(2).unwrap(),
+            model: string_record.get(3).unwrap(),
         })
     }
 }
 
 #[derive(Debug, Eq, PartialEq)]
-pub struct UnitShopRecord {
-    pub uid: String,
-    pub name: String,
-    pub model: Option<String>,
+pub struct UnitShopRecord<'src> {
+    pub uid: &'src str,
+    pub name: &'src str,
+    pub model: Option<&'src str>,
 }
 
-impl UnitShopRecord {
+impl<'src> UnitShopRecord<'src> {
     fn from_record(string_record: &StringRecord) -> Option<UnitShopRecord> {
         Some(UnitShopRecord {
-            uid: string_record.get(1).unwrap().to_string(),
-            name: string_record.get(2).unwrap().to_string(),
-            model: string_record.get(3).map(|f| f.to_string()),
+            uid: string_record.get(1).unwrap(),
+            name: string_record.get(2).unwrap(),
+            model: string_record.get(3).map(|f| f),
         })
     }
 }
 
 #[derive(Debug, Eq, PartialEq)]
-pub struct CustomBuilderRecord {
-    pub uid: String,
-    pub name: String,
-    pub model: Option<String>,
+pub struct CustomBuilderRecord<'src> {
+    pub uid: &'src str,
+    pub name: &'src str,
+    pub model: Option<&'src str>,
 }
 
-impl CustomBuilderRecord {
+impl<'src> CustomBuilderRecord<'src> {
     fn from_record(string_record: &StringRecord) -> Option<CustomBuilderRecord> {
         Some(CustomBuilderRecord {
-            uid: string_record.get(1).unwrap().to_string(),
-            name: string_record.get(2).unwrap().to_string(),
-            model: string_record.get(3).map(|f| f.to_string()),
+            uid: string_record.get(1).unwrap(),
+            name: string_record.get(2).unwrap(),
+            model: string_record.get(3).map(|f| f),
         })
     }
 }
 
 #[derive(Debug, Eq, PartialEq)]
-pub struct BuilderShopRecord {
-    pub uid: String,
-    pub name: String,
+pub struct BuilderShopRecord<'src> {
+    pub uid: &'src str,
+    pub name: &'src str,
 }
 
-impl BuilderShopRecord {
+impl<'src> BuilderShopRecord<'src> {
     fn from_record(string_record: &StringRecord) -> Option<BuilderShopRecord> {
         Some(BuilderShopRecord {
-            uid: string_record.get(1).unwrap().to_string(),
-            name: string_record.get(2).unwrap().to_string(),
+            uid: string_record.get(1).unwrap(),
+            name: string_record.get(2).unwrap(),
         })
     }
 }
 
 #[derive(Debug, Eq, PartialEq)]
-pub struct SetShopModelRecord {
-    pub model: String,
+pub struct SetShopModelRecord<'src> {
+    pub model: &'src str,
 }
 
-impl SetShopModelRecord {
+impl<'src> SetShopModelRecord<'src> {
     fn from_record(string_record: &StringRecord) -> Option<SetShopModelRecord> {
         Some(SetShopModelRecord {
-            model: string_record.get(1).unwrap().to_string()
+            model: string_record.get(1).unwrap(),
         })
     }
 }
 
 #[derive(Debug, Eq, PartialEq)]
-pub struct StockUnitModelRecord {
-    pub id: String,
-    pub model: String,
+pub struct StockUnitModelRecord<'src> {
+    pub id: &'src str,
+    pub model: &'src str,
 }
 
-impl StockUnitModelRecord {
+impl<'src> StockUnitModelRecord<'src> {
     fn from_record(string_record: &StringRecord) -> Option<StockUnitModelRecord> {
         Some(StockUnitModelRecord {
-            id: string_record.get(1).unwrap().to_string(),
-            model: string_record.get(2).unwrap().to_string()
+            id: string_record.get(1).unwrap(),
+            model: string_record.get(2).unwrap(),
         })
     }
 }
 
 #[derive(Debug, Eq, PartialEq)]
-pub struct ShopNewLineRecord {
+pub struct SetDefaultIconRecord<'src> {
+    pub icon: &'src str,
 }
 
-impl ShopNewLineRecord {
-    fn from_record(string_record: &StringRecord) -> Option<ShopNewLineRecord> {
-        Some(ShopNewLineRecord {
+impl<'src> SetDefaultIconRecord<'src> {
+    fn from_record(string_record: &StringRecord) -> Option<SetDefaultIconRecord> {
+        Some(SetDefaultIconRecord {
+            icon: string_record.get(1).unwrap(),
         })
     }
 }
 
 #[derive(Debug, Eq, PartialEq)]
-pub struct AttachmentRecord {}
-
-impl AttachmentRecord {
-    fn from_record(string_record: &StringRecord) -> Option<AttachmentRecord> {
-        Some(AttachmentRecord {})
-    }
+pub enum Record<'src> {
+    CustomUnit(CustomUnitRecord<'src>),
+    StockUnit(StockUnitRecord<'src>),
+    CustomBuilding(CustomBuildingRecord<'src>),
+    UnitShop(UnitShopRecord<'src>),
+    CustomBuilder(CustomBuilderRecord<'src>),
+    BuilderShop(BuilderShopRecord<'src>),
+    SetShopModel(SetShopModelRecord<'src>),
+    StockUnitModel(StockUnitModelRecord<'src>),
+    SetDefaultIcon(SetDefaultIconRecord<'src>),
 }
 
-#[derive(Debug, Eq, PartialEq)]
-pub struct AttachmentShopRecord {}
-
-impl AttachmentShopRecord {
-    fn from_record(string_record: &StringRecord) -> Option<AttachmentShopRecord> {
-        Some(AttachmentShopRecord {})
-    }
-}
-
-#[derive(Debug, Eq, PartialEq)]
-pub enum Record {
-    CustomUnit(CustomUnitRecord),
-    StockUnit(StockUnitRecord),
-    CustomBuilding(CustomBuildingRecord),
-    UnitShop(UnitShopRecord),
-    CustomBuilder(CustomBuilderRecord),
-    BuilderShop(BuilderShopRecord),
-    SetShopModel(SetShopModelRecord),
-    Attachment(AttachmentRecord),
-    AttachmentShop(AttachmentShopRecord),
-    StockUnitModel(StockUnitModelRecord),
-    ShopNewLine(ShopNewLineRecord)
-}
-
-impl Record {
+impl<'src> Record<'src> {
     pub fn from_record(string_record: &StringRecord) -> Option<Record> {
         let record_type = string_record.get(0);
 
         if let Some(record_type) = record_type {
             return match record_type {
-                "CustomUnit" => CustomUnitRecord::from_record(string_record).map(Record::CustomUnit),
+                "CustomUnit" => {
+                    CustomUnitRecord::from_record(string_record).map(Record::CustomUnit)
+                }
                 "StockUnit" => StockUnitRecord::from_record(string_record).map(Record::StockUnit),
-                "CustomBuilding" => CustomBuildingRecord::from_record(string_record).map(Record::CustomBuilding),
+                "CustomBuilding" => {
+                    CustomBuildingRecord::from_record(string_record).map(Record::CustomBuilding)
+                }
                 "UnitShop" => UnitShopRecord::from_record(string_record).map(Record::UnitShop),
-                "CustomBuilder" => CustomBuilderRecord::from_record(string_record).map(Record::CustomBuilder),
-                "BuilderShop" => BuilderShopRecord::from_record(string_record).map(Record::BuilderShop),
-                "Attachment" => AttachmentRecord::from_record(string_record).map(Record::Attachment),
-                "AttachmentShop" => AttachmentShopRecord::from_record(string_record).map(Record::AttachmentShop),
-                "SetShopModel" => SetShopModelRecord::from_record(string_record).map(Record::SetShopModel),
-                "StockUnitModel" => StockUnitModelRecord::from_record(string_record).map(Record::StockUnitModel),
-                "ShopNewLine" => ShopNewLineRecord::from_record(string_record).map(Record::ShopNewLine),
+                "CustomBuilder" => {
+                    CustomBuilderRecord::from_record(string_record).map(Record::CustomBuilder)
+                }
+                "BuilderShop" => {
+                    BuilderShopRecord::from_record(string_record).map(Record::BuilderShop)
+                }
+                "SetShopModel" => {
+                    SetShopModelRecord::from_record(string_record).map(Record::SetShopModel)
+                }
+                "StockUnitModel" => {
+                    StockUnitModelRecord::from_record(string_record).map(Record::StockUnitModel)
+                }
+                "SetDefaultIcon" => {
+                    SetDefaultIconRecord::from_record(string_record).map(Record::SetDefaultIcon)
+                }
                 _ => None,
             };
         }
