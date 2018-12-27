@@ -1,3 +1,4 @@
+use std::str::FromStr;
 use csv::StringRecord;
 
 #[derive(Debug, Eq, PartialEq)]
@@ -139,7 +140,20 @@ impl<'src> SetDefaultIconRecord<'src> {
     }
 }
 
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Debug, PartialEq)]
+pub struct SetShopScaleRecord {
+    pub scale: f32,
+}
+
+impl SetShopScaleRecord {
+    fn from_record(string_record: &StringRecord) -> Option<SetShopScaleRecord> {
+        Some(SetShopScaleRecord {
+            scale: f32::from_str(string_record.get(1).unwrap()).unwrap(),
+        })
+    }
+}
+
+#[derive(Debug, PartialEq)]
 pub enum Record<'src> {
     CustomUnit(CustomUnitRecord<'src>),
     StockUnit(StockUnitRecord<'src>),
@@ -150,6 +164,7 @@ pub enum Record<'src> {
     SetShopModel(SetShopModelRecord<'src>),
     StockUnitModel(StockUnitModelRecord<'src>),
     SetDefaultIcon(SetDefaultIconRecord<'src>),
+    SetShopScale(SetShopScaleRecord)
 }
 
 impl<'src> Record<'src> {
@@ -180,6 +195,9 @@ impl<'src> Record<'src> {
                 }
                 "SetDefaultIcon" => {
                     SetDefaultIconRecord::from_record(string_record).map(Record::SetDefaultIcon)
+                }
+                "SetShopScale" => {
+                    SetShopScaleRecord::from_record(string_record).map(Record::SetShopScale)
                 }
                 _ => None,
             };

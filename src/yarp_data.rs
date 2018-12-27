@@ -1,40 +1,43 @@
 use crate::yarp_meta::*;
-use fxhash::FxHashMap as HashMap;
+use indexmap::IndexMap;
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Default, Debug)]
 pub struct YarpData {
-    shops: HashMap<String, Vec<YarpDataUnitShop>>,
-    model_registry: HashMap<String, String>,
+    pub shops: IndexMap<String, Vec<YarpDataUnitShop>>,
+    pub stock_model_registry: IndexMap<String, String>,
 }
 
 impl YarpData {
     pub fn from_meta(
-        consumer_context: &RecordConsumerContext,
+        // consumer_context: &RecordConsumerContext,
         id_registry: &IdRegistry,
         unit_registry: &UnitRegistry,
+        model_registry: &ModelRegistry,
     ) -> YarpData {
-        let mut shops = Vec::new();
+        let mut unit_shops = Vec::new();
 
-        for unit in consumer_context
-            .shop_queue
-            .iter()
-            .map(|s| unit_registry.get(s))
+        // for unit in consumer_context
+        //     .shop_queue
+        //     .iter()
+        //     .map(|s| unit_registry.get(s))
+        for (_, unit) in unit_registry.registry.iter()
         {
             if let YarpUnit::Custom {
                 id,
                 name,
                 model,
-                variant: YarpUnitVariant::UnitShop { sold_ids },
+                variant: YarpUnitVariant::UnitShop { sold_ids, scale },
                 ..
             } = unit
             {
-                shops.push(YarpDataUnitShop {
+                unit_shops.push(YarpDataUnitShop {
                     uid: id.uid().to_string(),
                     name: name.to_string(),
                     model: model.to_string(),
                     row: 0,
                     col: 0,
+                    scale: *scale,
                     sold: sold_ids
                         .iter()
                         .map(|s| {
@@ -46,24 +49,38 @@ impl YarpData {
             }
         }
 
-        let mut map = HashMap::default();
-        map.insert("other".to_string(), shops);
+        let mut shops = IndexMap::default();
+        shops.insert("other".to_string(), unit_shops);
+
+        let mut stock_model_registry: IndexMap<String, String> = IndexMap::default();
+
+        for (id, model) in model_registry.registry.iter() {
+            if let UnitIdentifier::RawID { rawid } = id {
+                stock_model_registry.insert(rawid.to_string(), model.to_string());
+            }
+        }
 
         YarpData {
-            shops: map,
-            model_registry: HashMap::default(),
+            shops,
+            stock_model_registry,
         }
     }
 }
 
+pub enum YarpDataModelEntry {
+    ByRawid { rawid: String, model: String },
+    ByUid { uid: String, model: String },
+}
+
 #[derive(Serialize, Deserialize, Debug)]
 pub struct YarpDataUnitShop {
-    uid: String,
-    name: String,
-    model: String,
-    row: i32,
-    col: i32,
-    sold: Vec<YarpDataUnit>,
+    pub uid: String,
+    pub name: String,
+    pub model: String,
+    pub row: i32,
+    pub col: i32,
+    pub scale: f32,
+    pub sold: Vec<YarpDataUnit>,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -75,18 +92,18 @@ pub enum YarpDataUnit {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct YarpDataCustomUnit {
-    uid: String,
-    name: String,
-    model: String,
-    icon: String,
+    pub uid: String,
+    pub name: String,
+    pub model: String,
+    pub icon: String,
     #[serde(flatten)]
-    variant: YarpDataUnitVariant,
+    pub variant: YarpDataUnitVariant,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct YarpDataStockUnit {
-    rawid: String,
-    model: String,
+    pub rawid: String,
+    pub model: String,
 }
 
 impl YarpDataUnit {
