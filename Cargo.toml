@@ -15,3 +15,4 @@ itertools = "0.8.0"
 fxhash = "0.2.1"
 idcontain = "0.7.5"
 indexmap = {version = "1.0.2", features = ["serde-1"] }
+liquid = "0.18"

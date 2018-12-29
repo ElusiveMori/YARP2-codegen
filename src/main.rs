@@ -16,6 +16,7 @@ use crate::yarp_meta::*;
 use serde_json;
 use serde_yaml;
 use std::env;
+use liquid::ParserBuilder;
 
 fn process_csv(path: &str) {
     let file_in = File::open(path).expect("Unable to open file to read.");
@@ -79,6 +80,11 @@ fn process_csv(path: &str) {
     )).unwrap();
 
     write!(file_from_internal, ">>>>>>>>>>>>>> regenerated from model\n{}", reserialized);
+
+    let context = liquid_context(&new_meta).into_object().unwrap();
+
+    let template = ParserBuilder::with_liquid().build().unwrap().parse(include_str!("codegen_template.liquid")).unwrap();
+    println!("{}", template.render(&context).unwrap());
 
     // generator.emit();
 }

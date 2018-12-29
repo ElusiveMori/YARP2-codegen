@@ -3,6 +3,10 @@ use crate::yarp_data::*;
 use heck::*;
 use idcontain::{Id, IdSlab};
 use indexmap::IndexMap;
+use itertools::Itertools;
+use liquid::value::liquid_value;
+use liquid::value::map::Map as LiquidMap;
+use liquid::value::Value as LiquidValue;
 use std::mem::replace;
 
 #[derive(Debug, Default)]
@@ -49,11 +53,35 @@ impl UnitIdentifier {
         UnitIdentifier::RawID { rawid }
     }
 
+    pub fn is_uid(&self) -> bool {
+        if let UnitIdentifier::UID { .. } = &self {
+            true
+        } else {
+            false
+        }
+    }
+
+    pub fn is_rawid(&self) -> bool {
+        if let UnitIdentifier::RawID { .. } = &self {
+            true
+        } else {
+            false
+        }
+    }
+
     pub fn uid(&self) -> &str {
         if let UnitIdentifier::UID { uid, .. } = &self {
             &uid
         } else {
             panic!("cannot call .uid() on non-UID variant")
+        }
+    }
+
+    pub fn constant(&self) -> &str {
+        if let UnitIdentifier::UID { constant_name, .. } = &self {
+            &constant_name
+        } else {
+            panic!("cannot call .constant() on non-UID variant")
         }
     }
 
@@ -202,6 +230,95 @@ impl YarpUnit {
         match &self {
             YarpUnit::Custom { model, .. } => model,
             YarpUnit::Stock { model, .. } => model,
+        }
+    }
+
+    pub fn liquid_value(&self) -> LiquidValue {
+        match &self {
+            YarpUnit::Custom {
+                id,
+                variant,
+                name,
+                model,
+                icon,
+            } => {
+                let mut value = LiquidMap::new();
+                value.insert(
+                    "constant".into(),
+                    LiquidValue::scalar(id.constant().to_string()),
+                );
+                value.insert("model".into(), LiquidValue::scalar(model.to_string()));
+                value.insert("name".into(), LiquidValue::scalar(name.to_string()));
+                value.insert("icon".into(), LiquidValue::scalar(icon.to_string()));
+
+                match variant {
+                    YarpUnitVariant::Builder { built_ids } => {
+                        value.insert(
+                            "built".into(),
+                            LiquidValue::scalar(
+                                built_ids
+                                    .iter()
+                                    .map(|s| format!("{}.toRawCode()", s.constant()))
+                                    .join(" + \",\" + "),
+                            ),
+                        );
+                    }
+                    YarpUnitVariant::UnitShop { sold_ids, .. } => {
+                        value.insert(
+                            "sold".into(),
+                            LiquidValue::scalar(
+                                sold_ids
+                                    .iter()
+                                    .map(|s| {
+                                        if s.is_rawid() {
+                                            format!("\"{}\"", s.rawid())
+                                        } else {
+                                            format!("{}.toRawCode()", s.constant())
+                                        }
+                                    })
+                                    .join(" + \",\" + "),
+                            ),
+                        );
+                    }
+                    _ => {}
+                }
+
+                LiquidValue::Object(value)
+            }
+            _ => LiquidValue::nil(),
+        }
+    }
+
+    pub fn liquid_insert_into_context(&self, context: &mut LiquidMap) {
+        if let YarpUnit::Custom { variant, .. } = &self {
+            let value = self.liquid_value();
+
+            match variant {
+                YarpUnitVariant::Unit => context
+                    .get_mut("units")
+                    .unwrap()
+                    .as_array_mut()
+                    .unwrap()
+                    .push(value),
+                YarpUnitVariant::Building => context
+                    .get_mut("buildings")
+                    .unwrap()
+                    .as_array_mut()
+                    .unwrap()
+                    .push(value),
+                YarpUnitVariant::Builder { .. } => context
+                    .get_mut("builders")
+                    .unwrap()
+                    .as_array_mut()
+                    .unwrap()
+                    .push(value),
+                YarpUnitVariant::UnitShop { .. } => context
+                    .get_mut("shops")
+                    .unwrap()
+                    .as_array_mut()
+                    .unwrap()
+                    .push(value),
+            }
         }
     }
 }
@@ -388,9 +505,34 @@ pub fn transform_yarp_data(data: &YarpData) -> Registries {
     }
 
     for (rawid, model) in data.stock_model_registry.iter() {
-        let id = registries.id.insert(UnitIdentifier::new_stock(rawid.to_string()));
+        let id = registries
+            .id
+            .insert(UnitIdentifier::new_stock(rawid.to_string()));
         registries.model.insert(&id, model.to_string());
     }
 
     registries
+}
+
+pub fn liquid_context(registries: &Registries) -> LiquidValue {
+    let mut value = liquid_value!({"units" : [], "buildings" : [], "shops" : [], "builders" : [], "constants" : []});
+
+    for (_, unit) in &registries.unit.registry {
+        unit.liquid_insert_into_context(value.as_object_mut().unwrap());
+    }
+
+    for id in &registries.id.slab {
+        if let UnitIdentifier::UID { .. } = &id {
+            value
+                .as_object_mut()
+                .unwrap()
+                .get_mut("constants")
+                .unwrap()
+                .as_array_mut()
+                .unwrap()
+                .push(liquid_value!({"ident" : id.constant()})); //insert();
+        }
+    }
+
+    value
 }
