@@ -77,11 +77,10 @@ impl UnitIdentifier {
         }
     }
 
-    pub fn constant(&self) -> &str {
-        if let UnitIdentifier::UID { constant_name, .. } = &self {
-            &constant_name
-        } else {
-            panic!("cannot call .constant() on non-UID variant")
+    pub fn constant(&self) -> String {
+        match self {
+            UnitIdentifier::UID { constant_name, .. } => constant_name.to_string(),
+            UnitIdentifier::RawID { rawid, .. } => format!("'{}'", rawid)
         }
     }
 
@@ -515,7 +514,8 @@ pub fn transform_yarp_data(data: &YarpData) -> Registries {
 }
 
 pub fn liquid_context(registries: &Registries) -> LiquidValue {
-    let mut value = liquid_value!({"units" : [], "buildings" : [], "shops" : [], "builders" : [], "constants" : []});
+    let mut value =
+        liquid_value!({"units" : [], "buildings" : [], "shops" : [], "builders" : [], "uids" : [], "models" : []});
 
     for (_, unit) in &registries.unit.registry {
         unit.liquid_insert_into_context(value.as_object_mut().unwrap());
@@ -526,12 +526,29 @@ pub fn liquid_context(registries: &Registries) -> LiquidValue {
             value
                 .as_object_mut()
                 .unwrap()
-                .get_mut("constants")
+                .get_mut("uids")
                 .unwrap()
                 .as_array_mut()
                 .unwrap()
-                .push(liquid_value!({"ident" : id.constant()})); //insert();
+                .push(liquid_value!({
+                    "constant" : id.constant(),
+                    "uid" : id.uid(),
+                }));
         }
+    }
+
+    for (id, model) in &registries.model.registry {
+        value
+            .as_object_mut()
+            .unwrap()
+            .get_mut("models")
+            .unwrap()
+            .as_array_mut()
+            .unwrap()
+            .push(liquid_value!({
+                "constant" : id.constant(),
+                "path" : model.to_string(),
+            }));
     }
 
     value
