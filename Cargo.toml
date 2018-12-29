@@ -5,9 +5,7 @@ authors = ["Samuel Moriarty <insomnia.array@gmail.com>"]
 edition = "2018"
 
 [dependencies]
-csv = "1.0.5"
 serde = { version = "1.0.82", features = ["derive"] }
-serde_json = "1.0.33"
 serde_yaml = "0.8.8"
 serde_derive = "1.0.82"
 heck = "0.3.1"

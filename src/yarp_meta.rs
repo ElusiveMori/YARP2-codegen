@@ -1,4 +1,3 @@
-use crate::records::*;
 use crate::yarp_data::*;
 use heck::*;
 use idcontain::{Id, IdSlab};
@@ -334,109 +333,13 @@ impl ModelRegistry {
 }
 
 #[derive(Default)]
-pub struct RecordConsumerContext {
-    pub unit_queue: Vec<UnitIdentifier>,
-    pub building_queue: Vec<UnitIdentifier>,
-    pub shop_queue: Vec<UnitIdentifier>,
-    pub current_shop_model: String,
-    pub current_icon_path: String,
-    pub current_scale: f32,
-}
-
-pub fn consume_record(
-    record: Record,
-    consumer_context: &mut RecordConsumerContext,
-    id_registry: &mut IdRegistry,
-    unit_registry: &mut UnitRegistry,
-    model_registry: &mut ModelRegistry,
-) {
-    match record {
-        Record::CustomUnit(unit) => {
-            let id = id_registry.insert(UnitIdentifier::new_custom(unit.uid.to_string()));
-            let yarp_unit = YarpUnit::new_unit(
-                id.clone(),
-                unit.name.to_string(),
-                unit.model.to_string(),
-                consumer_context.current_icon_path.to_string(),
-            );
-            model_registry.insert(&id, yarp_unit.model().to_string());
-            consumer_context.unit_queue.push(id);
-            unit_registry.insert(yarp_unit);
-        }
-        Record::CustomBuilding(building) => {
-            let id = id_registry.insert(UnitIdentifier::new_custom(building.uid.to_string()));
-            let yarp_unit = YarpUnit::new_building(
-                id.clone(),
-                building.name.to_string(),
-                building.model.to_string(),
-                consumer_context.current_icon_path.to_string(),
-            );
-            model_registry.insert(&id, yarp_unit.model().to_string());
-            consumer_context.building_queue.push(id);
-            unit_registry.insert(yarp_unit);
-        }
-        Record::CustomBuilder(builder) => {
-            let id = id_registry.insert(UnitIdentifier::new_custom(builder.uid.to_string()));
-            let yarp_unit = YarpUnit::new_builder(
-                id.clone(),
-                builder.name.to_string(),
-                "".to_string(),
-                consumer_context.current_icon_path.to_string(),
-                &consumer_context.building_queue,
-            );
-            consumer_context.building_queue.clear();
-            model_registry.insert(&id, yarp_unit.model().to_string());
-            consumer_context.unit_queue.push(id);
-            unit_registry.insert(yarp_unit);
-        }
-        Record::UnitShop(shop) => {
-            let id = id_registry.insert(UnitIdentifier::new_custom(shop.uid.to_string()));
-            let yarp_unit = YarpUnit::new_shop(
-                id.clone(),
-                shop.name.to_string(),
-                consumer_context.current_shop_model.to_string(),
-                &consumer_context.unit_queue,
-                consumer_context.current_scale,
-            );
-            model_registry.insert(&id, yarp_unit.model().to_string());
-            consumer_context.unit_queue.clear();
-            unit_registry.insert(yarp_unit);
-            consumer_context.shop_queue.push(id);
-        }
-        Record::StockUnit(unit) => {
-            let id = id_registry.insert(UnitIdentifier::new_stock(unit.id.to_string()));
-            let yarp_unit = YarpUnit::new_stock(id.clone(), unit.model.to_string());
-            model_registry.insert(&id, yarp_unit.model().to_string());
-            consumer_context.current_shop_model = unit.model.to_string();
-            consumer_context.unit_queue.push(id);
-            unit_registry.insert(yarp_unit);
-        }
-        Record::SetShopModel(model) => {
-            consumer_context.current_shop_model = model.model.to_string();
-        }
-        Record::SetDefaultIcon(icon) => {
-            consumer_context.current_icon_path = icon.icon.to_string();
-        }
-        Record::StockUnitModel(model) => {
-            model_registry.insert(
-                &UnitIdentifier::new_stock(model.id.to_string()),
-                model.model.to_string(),
-            );
-        }
-        Record::SetShopScale(scale) => {
-            consumer_context.current_scale = scale.scale;
-        }
-
-        _ => {}
-    }
-}
-
-#[derive(Default)]
 pub struct Registries {
     pub id: IdRegistry,
     pub unit: UnitRegistry,
     pub model: ModelRegistry,
 }
+
+
 
 fn transform_yarp_data_unit(unit: &YarpDataUnit, registries: &mut Registries) -> UnitIdentifier {
     match unit {
